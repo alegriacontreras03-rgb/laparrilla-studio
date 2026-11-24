@@ -423,6 +423,26 @@
       border-color: #52525b;
       color: #d4d4d8;
     }
+    .btn-decline {
+      background: #2b1818;
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+    }
+    .sug-title {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fdba74;
+      background: #181411;
+      border-bottom: 1px solid var(--border);
+    }
+    .sug-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--border);
+    }
     .bottom-bar {
       position: fixed;
       inset: auto 0 0 0;
@@ -492,9 +512,10 @@
       <div class="stats-pill" id="statsPill">0 / 5 aprobadas</div>
     </div>
     <div class="filters">
-      <button class="filter-btn active" data-filter="ALL">Todas (5)</button>
-      <button class="filter-btn" data-filter="BORRADOR">Borradores</button>
-      <button class="filter-btn" data-filter="APROBADO">Aprobadas</button>
+      <button class="filter-btn active" data-filter="ALL" id="tabAll">Todas (5)</button>
+      <button class="filter-btn" data-filter="BORRADOR" id="tabDraft">Borradores</button>
+      <button class="filter-btn" data-filter="APROBADO" id="tabApproved">Aprobadas</button>
+      <button class="filter-btn" data-filter="SUGGESTIONS" id="tabSug">💡 Sugerencias (3)</button>
     </div>
   </header>
 
@@ -558,8 +579,43 @@
       }
     ];
 
+    const INITIAL_SUGGESTIONS = [
+      {
+        sid: "S1",
+        titulo: "🌮 Encuesta interactiva: ¿Cuál es tu taco favorito?",
+        fecha: "2026-12-04 Vie",
+        hora: "19:30",
+        red: "AMBAS",
+        formato: "POST",
+        copy: "🌮 Encuesta oficial en Ixtlahuacán del Río: ¿Con qué taco arrancas el fin de semana en La Parrilla?\n\n1️⃣ Arrachera jugosa\n2️⃣ Diezmillo al carbón\n3️⃣ Chorizo bien doradito\n\nVota con el número en los comentarios y etiqueta a quien te debe una orden. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita. #LaParrilla #TacosAlCarbon #IxtlahuacanDelRio",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg"
+      },
+      {
+        sid: "S2",
+        titulo: "📲 Historia 9:16: Pedidos para llevar por WhatsApp",
+        fecha: "2026-12-03 Jue",
+        hora: "19:30",
+        red: "AMBAS",
+        formato: "STORY",
+        copy: "📲 ¿Antojo en casa? Pide tus hamburguesas o boneless por WhatsApp al 33 3072 3340 (7:30 pm a 11:30 pm).",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549729/dpogosacyxs2zrqgbv23.jpg"
+      },
+      {
+        sid: "S3",
+        titulo: "🔥 Promo Parrillada Familiar de Fin de Semana",
+        fecha: "2026-12-05 Sáb",
+        hora: "19:30",
+        red: "AMBAS",
+        formato: "POST",
+        copy: "🔥 ¡Fin de semana de compartir alrededor del carbón en La Parrilla! Ven con tu familia o amigos por nuestras parrilladas con arrachera, diezmillo, chorizo, quesadillas, tortillas hechas a mano, nopales, cebollitas y nuestras salsas de la casa.\n\nTe esperamos de viernes a domingo, de 7:30 pm a 11:30 pm, en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pedidos para llevar por WhatsApp al 33 3072 3340. #ParrilladasLaParrilla #IxtlahuacanDelRio #SaborAlCarbon",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549728/kjgmbt8clkx9zzmkfpwq.jpg"
+      }
+    ];
+
     const STORAGE_KEY = "laparrilla_studio_v1";
+    const SUG_STORAGE_KEY = "laparrilla_studio_sug_v1";
     let posts = loadPosts();
+    let suggestions = loadSuggestions();
     let currentFilter = "ALL";
     const previewMode = {};
     const editorOpen = {};
@@ -572,8 +628,20 @@
       return INITIAL_POSTS.map((p) => ({ ...p }));
     }
 
+    function loadSuggestions() {
+      try {
+        const raw = localStorage.getItem(SUG_STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch {}
+      return INITIAL_SUGGESTIONS.map((s) => ({ ...s }));
+    }
+
     function savePosts() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); } catch {}
+    }
+
+    function saveSuggestions() {
+      try { localStorage.setItem(SUG_STORAGE_KEY, JSON.stringify(suggestions)); } catch {}
     }
 
     function showToast(msg) {
@@ -648,10 +716,52 @@
 
     function render() {
       const approvedCount = posts.filter((p) => p.estado === "APROBADO").length;
+      const draftCount = posts.filter((p) => p.estado === "BORRADOR").length;
       document.getElementById("statsPill").textContent = `${approvedCount} / ${posts.length} aprobadas`;
+      document.getElementById("tabAll").textContent = `Todas (${posts.length})`;
+      document.getElementById("tabDraft").textContent = `Borradores (${draftCount})`;
+      document.getElementById("tabApproved").textContent = `Aprobadas (${approvedCount})`;
+      document.getElementById("tabSug").textContent = `💡 Sugerencias (${suggestions.length})`;
+
+      const feed = document.getElementById("feed");
+
+      if (currentFilter === "SUGGESTIONS") {
+        if (!suggestions.length) {
+          feed.innerHTML = `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay sugerencias pendientes. Toca "Reset" abajo si quieres restaurar las ideas iniciales.</div>`;
+          return;
+        }
+        feed.innerHTML = suggestions.map((sug) => {
+          const mode = previewMode[sug.sid] || (sug.formato === "STORY" ? "STORY" : "IG");
+          return `
+            <article class="card" data-sid="${sug.sid}">
+              <div class="card-top">
+                <div class="meta-left">
+                  <span class="id-chip">IDEA ${sug.sid}</span>
+                  <span class="date-label">${sug.fecha} · ${sug.hora}</span>
+                  <span class="format-chip">${sug.red} · ${sug.formato}</span>
+                </div>
+                <span class="status-badge draft">SUGERENCIA</span>
+              </div>
+              <div class="sug-title">${escapeHtml(sug.titulo)}</div>
+              <div class="mode-tabs">
+                <button class="mode-btn ${mode === "IG" ? "active" : ""}" data-mode="IG">Instagram Post</button>
+                <button class="mode-btn ${mode === "STORY" ? "active" : ""}" data-mode="STORY">Historia 9:16</button>
+                <button class="mode-btn ${mode === "FB" ? "active" : ""}" data-mode="FB">Facebook Post</button>
+              </div>
+              <div class="preview-stage">
+                ${renderMockup({ id: sug.sid, fecha: sug.fecha, hora: sug.hora, copy: sug.copy, foto: sug.foto }, mode)}
+              </div>
+              <div class="sug-actions">
+                <button class="btn btn-approve" data-action="accept-sug">✓ Aceptar</button>
+                <button class="btn btn-decline" data-action="decline-sug">✕ Declinar</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+        return;
+      }
 
       const visible = posts.filter((p) => currentFilter === "ALL" || p.estado === currentFilter);
-      const feed = document.getElementById("feed");
 
       if (!visible.length) {
         feed.innerHTML = `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay publicaciones en "${currentFilter}".</div>`;
@@ -710,6 +820,47 @@
     document.getElementById("feed").addEventListener("click", async (e) => {
       const card = e.target.closest(".card");
       if (!card) return;
+
+      if (card.dataset.sid) {
+        const sid = card.dataset.sid;
+        const sugIdx = suggestions.findIndex((s) => s.sid === sid);
+        if (sugIdx === -1) return;
+        const sug = suggestions[sugIdx];
+
+        const modeBtn = e.target.closest("[data-mode]");
+        if (modeBtn) {
+          previewMode[sid] = modeBtn.dataset.mode;
+          render();
+          return;
+        }
+
+        const actionBtn = e.target.closest("[data-action]");
+        if (!actionBtn) return;
+        if (actionBtn.dataset.action === "accept-sug") {
+          const nextId = posts.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+          posts.push({
+            id: nextId,
+            fecha: sug.fecha,
+            hora: sug.hora,
+            formato: sug.formato,
+            estado: "BORRADOR",
+            copy: sug.copy,
+            foto: sug.foto
+          });
+          suggestions.splice(sugIdx, 1);
+          savePosts();
+          saveSuggestions();
+          render();
+          showToast(`Movida a Borradores con ID ${nextId}`);
+        } else if (actionBtn.dataset.action === "decline-sug") {
+          suggestions.splice(sugIdx, 1);
+          saveSuggestions();
+          render();
+          showToast("Sugerencia descartada");
+        }
+        return;
+      }
+
       const id = Number(card.dataset.id);
       const post = posts.find((p) => p.id === id);
       if (!post) return;
@@ -775,9 +926,11 @@
 
     document.getElementById("resetBtn").addEventListener("click", () => {
       posts = INITIAL_POSTS.map((p) => ({ ...p }));
+      suggestions = INITIAL_SUGGESTIONS.map((s) => ({ ...s }));
       savePosts();
+      saveSuggestions();
       render();
-      showToast("Textos y estados restaurados");
+      showToast("Textos, estados y sugerencias restaurados");
     });
 
     if ("serviceWorker" in navigator) {
