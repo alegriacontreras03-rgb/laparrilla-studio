@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>La Parrilla · Studio</title>
+  <meta name="theme-color" content="#14110f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="La Parrilla" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2314110f'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23f97316' stroke-width='5'/%3E%3Ctext x='50' y='63' font-size='44' text-anchor='middle'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href='data:application/manifest+json,{"name":"La Parrilla · Studio","short_name":"La Parrilla","start_url":"./","display":"standalone","background_color":"#14110f","theme_color":"#e85d04","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 192 192%27%3E%3Crect width=%27192%27 height=%27192%27 rx=%2742%27 fill=%27%2314110f%27/%3E%3Ccircle cx=%2796%27 cy=%2796%27 r=%2776%27 fill=%27none%27 stroke=%27%23f97316%27 stroke-width=%2710%27/%3E%3Ctext x=%2796%27 y=%27122%27 font-size=%2786%27 text-anchor=%27middle%27%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"}]}' />
+  <style>
+    :root {
+      --bg: #110f0d;
+      --surface: #1b1714;
+      --surface-2: #241e1a;
+      --border: #332a23;
+      --text: #f7f3ee;
+      --muted: #b0a499;
+      --accent: #f97316;
+      --accent-2: #ea580c;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --ig: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      --fb: #1877f2;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-bottom: 92px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(17, 15, 13, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 12px;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, #fb923c, #c2410c);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand p {
+      margin: 1px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .stats-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--amber);
+      white-space: nowrap;
+    }
+    .filters {
+      display: flex;
+      gap: 8px;
+      max-width: 720px;
+      margin: 10px auto 0;
+      overflow-x: auto;
+    }
+    .filter-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    main {
+      max-width: 720px;
+      margin: 14px auto;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+    .card.approved {
+      border-color: rgba(34, 197, 94, 0.55);
+    }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .id-chip {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(249, 115, 22, 0.16);
+      color: #fdba74;
+      border: 1px solid rgba(249, 115, 22, 0.35);
+    }
+    .date-label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .format-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: #2c251f;
+      color: #e7ded5;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+    .status-badge.draft {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .status-badge.approved {
+      background: rgba(34, 197, 94, 0.18);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+    }
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 10px 12px;
+      background: #161310;
+      border-bottom: 1px solid var(--border);
+    }
+    .mode-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      padding: 8px 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: #2b231d;
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .preview-stage {
+      padding: 14px 12px;
+      display: flex;
+      justify-content: center;
+      background: #0d0b0a;
+    }
+    /* Phone Post Mockup */
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+    .phone-frame.fb {
+      background: #ffffff;
+    }
+    .social-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+    .avatar-ring {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      padding: 2px;
+      background: var(--ig);
+      flex-shrink: 0;
+    }
+    .phone-frame.fb .avatar-ring {
+      background: var(--fb);
+    }
+    .avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #14110f;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      border: 2px solid #fff;
+    }
+    .social-user {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .social-user strong {
+      font-size: 13px;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .social-user span {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .fb-text {
+      padding: 2px 12px 10px;
+      font-size: 13.5px;
+      color: #1f2937;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .media-box {
+      width: 100%;
+      background: #14110f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .media-box img {
+      width: 100%;
+      max-height: 460px;
+      object-fit: cover;
+      display: block;
+    }
+    .ig-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 12px 4px;
+      font-size: 18px;
+    }
+    .ig-caption {
+      padding: 4px 12px 14px;
+      font-size: 13.5px;
+      color: #111827;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    /* Story 9:16 Mockup */
+    .story-frame {
+      position: relative;
+      width: 100%;
+      max-width: 310px;
+      aspect-ratio: 9 / 16;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65);
+    }
+    .story-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .story-top {
+      position: absolute;
+      inset: 0 0 auto 0;
+      padding: 10px 12px 24px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.72), transparent);
+      color: #fff;
+    }
+    .story-bars {
+      height: 3px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.35);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .story-bars > div {
+      width: 65%;
+      height: 100%;
+      background: #fff;
+    }
+    .story-user-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .story-user-row small {
+      display: block;
+      font-weight: 500;
+      opacity: 0.85;
+      font-size: 10.5px;
+    }
+    .story-caption-overlay {
+      position: absolute;
+      inset: auto 12px 18px 12px;
+      background: rgba(17, 15, 13, 0.78);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12.5px;
+      line-height: 1.35;
+      border: 1px solid rgba(255,255,255,0.16);
+      max-height: 38%;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .editor-area {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .editor-area.hidden {
+      display: none;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #120f0d;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.45;
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 10px 8px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .btn-approve {
+      background: #166534;
+      border-color: #22c55e;
+      color: #fff;
+    }
+    .btn-approve.is-approved {
+      background: #27272a;
+      border-color: #52525b;
+      color: #d4d4d8;
+    }
+    .bottom-bar {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 40;
+      background: rgba(20, 17, 15, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    }
+    .bottom-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-primary {
+      flex: 1;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .toast {
+      position: fixed;
+      bottom: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #18181b;
+      color: #fff;
+      border: 1px solid var(--accent);
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-row">
+      <div class="brand">
+        <div class="logo-badge">🔥</div>
+        <div>
+          <h1>La Parrilla · Studio</h1>
+          <p>📍 Ixtlahuacán del Río, Jalisco</p>
+        </div>
+      </div>
+      <div class="stats-pill" id="statsPill">0 / 5 aprobadas</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="ALL">Todas (5)</button>
+      <button class="filter-btn" data-filter="BORRADOR">Borradores</button>
+      <button class="filter-btn" data-filter="APROBADO">Aprobadas</button>
+    </div>
+  </header>
+
+  <main id="feed"></main>
+
+  <div class="bottom-bar">
+    <div class="bottom-inner">
+      <button class="btn-primary" id="copyApprovedBtn">📋 Copiar aprobadas</button>
+      <button class="btn-secondary" id="resetBtn" title="Restaurar originales">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const INITIAL_POSTS = [
+      {
+        id: 3,
+        fecha: "2026-11-25 Mié",
+        hora: "19:30",
+        formato: "POST",
+        estado: "BORRADOR",
+        copy: "🔥 ¡Mitad de semana se cura con unos boneless búfalo bien calientitos! Pásale hoy a La Parrilla por los tuyos, recién salidos y con todo el sabor. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pide también para llevar por WhatsApp al 33 3072 3340. #LaParrilla #IxtlahuacanDelRio #Boneless",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg"
+      },
+      {
+        id: 4,
+        fecha: "2026-11-26 Jue",
+        hora: "19:30",
+        formato: "POST",
+        estado: "BORRADOR",
+        copy: "Llegó el gran debate de jueves en Ixtlahuacán del Río. ¿Eres del equipo Hamburguesa Doble con doble dosis de carne al carbón o prefieres el toque dulce de la Hawaiana con su piña asada? Deja en los comentarios tu favorita y etiqueta a la persona que te va a acompañar hoy por la suya. Te esperamos con el carbón encendido de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, colonia La Garita. #IxtlahuacanDelRio #LaParrilla #HamburguesasAlCarbon",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg"
+      },
+      {
+        id: 5,
+        fecha: "2026-11-27 Vie",
+        hora: "19:30",
+        formato: "POST",
+        estado: "BORRADOR",
+        copy: "🔥 ¡Ya es viernes y hoy prendemos el carbón con TODO nuestro menú completo! Ven por tus tacos al carbón, parrilladas para compartir, hamburguesas o gringas recién hechas. Te esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o haz tu pedido por WhatsApp al 33 3072 3340. #ViernesDeParrilla #IxtlahuacanDelRio #LaParrilla",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549737/ag53u4xmnirzs1zmvebu.jpg"
+      },
+      {
+        id: 6,
+        fecha: "2026-11-28 Sáb",
+        hora: "19:30",
+        formato: "POST",
+        estado: "BORRADOR",
+        copy: "El sábado se disfruta mejor en familia y con el auténtico sabor al carbón. Hoy tenemos lista la parrilla con nuestro menú completo: deliciosas parrilladas para compartir con arrachera, diezmillo, chorizo, quesadillas y tortillas recién hechas a mano, además de nuestros tradicionales tacos al carbón. Los esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Colonia La Garita, en Ixtlahuacán del Río. Si prefieren disfrutar en casa, hagan su pedido para llevar por WhatsApp al 33 3072 3340. ¡Será un gusto atenderlos! #IxtlahuacanDelRio #LaParrilla #CenasIxtlahuacan",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg"
+      },
+      {
+        id: 7,
+        fecha: "2026-11-29 Dom",
+        hora: "19:30",
+        formato: "STORY",
+        estado: "BORRADOR",
+        copy: "¡Domingo de consentirte con una Gringa Parrillera recién hecha en La Parrilla desde las 7:30 pm!",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg"
+      }
+    ];
+
+    const STORAGE_KEY = "laparrilla_studio_v1";
+    let posts = loadPosts();
+    let currentFilter = "ALL";
+    const previewMode = {};
+    const editorOpen = {};
+
+    function loadPosts() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch {}
+      return INITIAL_POSTS.map((p) => ({ ...p }));
+    }
+
+    function savePosts() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); } catch {}
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderMockup(post, mode) {
+      const safeCopy = escapeHtml(post.copy);
+      if (mode === "STORY") {
+        return `
+          <div class="story-frame">
+            <img src="${post.foto}" alt="La Parrilla ID ${post.id}" loading="lazy" />
+            <div class="story-top">
+              <div class="story-bars"><div></div></div>
+              <div class="story-user-row">
+                <div class="avatar-ring" style="width:30px;height:30px;"><div class="avatar-inner" style="font-size:13px;">🔥</div></div>
+                <div>
+                  laparrilla_ixtla · ${post.hora}
+                  <small>📍 Ixtlahuacán del Río, Jalisco</small>
+                </div>
+              </div>
+            </div>
+            <div class="story-caption-overlay">${safeCopy}</div>
+          </div>
+        `;
+      }
+      if (mode === "FB") {
+        return `
+          <div class="phone-frame fb">
+            <div class="social-header">
+              <div class="avatar-ring"><div class="avatar-inner">🔥</div></div>
+              <div class="social-user">
+                <strong>La Parrilla (Ixtlahuacán del Río)</strong>
+                <span>${post.fecha} · ${post.hora} · 📍 Ixtlahuacán del Río, Jalisco</span>
+              </div>
+            </div>
+            <div class="fb-text">${safeCopy}</div>
+            <div class="media-box"><img src="${post.foto}" alt="La Parrilla ID ${post.id}" loading="lazy" /></div>
+            <div class="ig-actions" style="font-size:13px;color:#4b5563;padding:10px 14px;border-top:1px solid #e5e7eb;">
+              <span>👍 Me gusta</span><span>💬 Comentar</span><span>↗️ Compartir</span>
+            </div>
+          </div>
+        `;
+      }
+      return `
+        <div class="phone-frame">
+          <div class="social-header">
+            <div class="avatar-ring"><div class="avatar-inner">🔥</div></div>
+            <div class="social-user">
+              <strong>laparrilla_ixtla</strong>
+              <span>📍 Ixtlahuacán del Río, Jalisco</span>
+            </div>
+          </div>
+          <div class="media-box"><img src="${post.foto}" alt="La Parrilla ID ${post.id}" loading="lazy" /></div>
+          <div class="ig-actions"><span>❤️ 💬 ✈️</span><span>🔖</span></div>
+          <div class="ig-caption"><strong>laparrilla_ixtla</strong> ${safeCopy}</div>
+        </div>
+      `;
+    }
+
+    function render() {
+      const approvedCount = posts.filter((p) => p.estado === "APROBADO").length;
+      document.getElementById("statsPill").textContent = `${approvedCount} / ${posts.length} aprobadas`;
+
+      const visible = posts.filter((p) => currentFilter === "ALL" || p.estado === currentFilter);
+      const feed = document.getElementById("feed");
+
+      if (!visible.length) {
+        feed.innerHTML = `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay publicaciones en "${currentFilter}".</div>`;
+        return;
+      }
+
+      feed.innerHTML = visible.map((post) => {
+        const mode = previewMode[post.id] || (post.formato === "STORY" ? "STORY" : "IG");
+        const isApproved = post.estado === "APROBADO";
+        const isEditing = !!editorOpen[post.id];
+        return `
+          <article class="card ${isApproved ? "approved" : ""}" data-id="${post.id}">
+            <div class="card-top">
+              <div class="meta-left">
+                <span class="id-chip">ID ${post.id}</span>
+                <span class="date-label">${post.fecha} · ${post.hora}</span>
+                <span class="format-chip">${post.formato}</span>
+              </div>
+              <span class="status-badge ${isApproved ? "approved" : "draft"}">${post.estado}</span>
+            </div>
+            <div class="mode-tabs">
+              <button class="mode-btn ${mode === "IG" ? "active" : ""}" data-mode="IG">Instagram Post</button>
+              <button class="mode-btn ${mode === "STORY" ? "active" : ""}" data-mode="STORY">Historia 9:16</button>
+              <button class="mode-btn ${mode === "FB" ? "active" : ""}" data-mode="FB">Facebook Post</button>
+            </div>
+            <div class="preview-stage" id="preview-${post.id}">
+              ${renderMockup(post, mode)}
+            </div>
+            <div class="editor-area ${isEditing ? "" : "hidden"}" id="editor-${post.id}">
+              <label style="font-size:12px;color:var(--muted);font-weight:700;">Editar texto en vivo:</label>
+              <textarea data-edit-id="${post.id}">${escapeHtml(post.copy)}</textarea>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-approve ${isApproved ? "is-approved" : ""}" data-action="toggle-approve">
+                ${isApproved ? "↩ Borrador" : "✅ Aprobar"}
+              </button>
+              <button class="btn" data-action="toggle-edit">
+                ${isEditing ? "✖ Cerrar" : "✏️ Editar"}
+              </button>
+              <button class="btn" data-action="copy-one">📋 Copiar</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    document.querySelectorAll(".filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    document.getElementById("feed").addEventListener("click", async (e) => {
+      const card = e.target.closest(".card");
+      if (!card) return;
+      const id = Number(card.dataset.id);
+      const post = posts.find((p) => p.id === id);
+      if (!post) return;
+
+      const modeBtn = e.target.closest("[data-mode]");
+      if (modeBtn) {
+        previewMode[id] = modeBtn.dataset.mode;
+        render();
+        return;
+      }
+
+      const actionBtn = e.target.closest("[data-action]");
+      if (!actionBtn) return;
+      const action = actionBtn.dataset.action;
+
+      if (action === "toggle-approve") {
+        post.estado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
+        savePosts();
+        render();
+        showToast(post.estado === "APROBADO" ? `ID ${id} marcada como APROBADA` : `ID ${id} regresó a BORRADOR`);
+      } else if (action === "toggle-edit") {
+        editorOpen[id] = !editorOpen[id];
+        render();
+      } else if (action === "copy-one") {
+        try {
+          await navigator.clipboard.writeText(post.copy);
+          showToast(`Copy de ID ${id} copiado`);
+        } catch {
+          showToast("No se pudo copiar automáticamente");
+        }
+      }
+    });
+
+    document.getElementById("feed").addEventListener("input", (e) => {
+      const ta = e.target.closest("textarea[data-edit-id]");
+      if (!ta) return;
+      const id = Number(ta.dataset.editId);
+      const post = posts.find((p) => p.id === id);
+      if (!post) return;
+      post.copy = ta.value;
+      savePosts();
+      const mode = previewMode[id] || (post.formato === "STORY" ? "STORY" : "IG");
+      const stage = document.getElementById(`preview-${id}`);
+      if (stage) stage.innerHTML = renderMockup(post, mode);
+    });
+
+    document.getElementById("copyApprovedBtn").addEventListener("click", async () => {
+      const approved = posts.filter((p) => p.estado === "APROBADO");
+      if (!approved.length) {
+        showToast("Primero aprueba al menos una tarjeta");
+        return;
+      }
+      const text = approved
+        .map((p) => `[ID ${p.id} · ${p.fecha} ${p.hora} · ${p.formato}]\n${p.copy}\nFoto: ${p.foto}`)
+        .join("\n\n---\n\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(`${approved.length} publicación(es) aprobada(s) copiada(s)`);
+      } catch {
+        showToast("No se pudo copiar al portapapeles");
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      posts = INITIAL_POSTS.map((p) => ({ ...p }));
+      savePosts();
+      render();
+      showToast("Textos y estados restaurados");
+    });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
+    render();
+  </script>
+</body>
+</html>
