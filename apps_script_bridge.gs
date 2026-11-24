@@ -90,7 +90,7 @@ function doPost(e) {
       return jsonResponse({ ok: true, action: "updatePost", id: targetId, row: rowNum });
     }
 
-    if (body.action === "addPost") {
+    if (body.action === "create" || body.action === "addPost") {
       let maxId = 0;
       for (let r = 1; r < data.length; r++) {
         const n = Number(data[r][0]);

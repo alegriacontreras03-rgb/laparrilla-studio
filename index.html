@@ -592,26 +592,68 @@
 
     const INITIAL_SUGGESTIONS = [
       {
-        sid: "S1", titulo: "🌮 Encuesta interactiva: ¿Cuál es tu taco favorito?",
+        sid: "S1", titulo: "Miércoles · Opción A: Miércoles de Boneless & Papas",
+        fecha: "2026-12-02", dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🔥 ¡Corta la semana con unos Boneless bien bañados en salsa y papas recién salidas! Pásale hoy a La Parrilla de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o pídelos para llevar por WhatsApp al 33 3072 3340. #LaParrilla #IxtlahuacanDelRio #MiercolesDeBoneless",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg"
+      },
+      {
+        sid: "S2", titulo: "Miércoles · Opción B: Encuesta rápida de salsas",
+        fecha: "2026-12-02", dia: "Mié", hora: "18:30", red: "AMBAS", formato: "STORY",
+        copy: "🌶️ ¡Miércoles de antojo en La Parrilla! ¿Con qué salsa pides hoy tus boneless: Búfalo clásico o Mango Habanero? Te esperamos desde las 7:30 pm o pide por WhatsApp al 33 3072 3340.",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg"
+      },
+      {
+        sid: "S3", titulo: "Jueves · Opción A: Jueves de Burgers al Carbón",
+        fecha: "2026-12-03", dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🍔 ¡Hoy es Jueves de Burgers al Carbón en La Parrilla! Carne jugosa asada al momento, pan suavecito y papas doraditas. Ven hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o haz tu pedido por WhatsApp al 33 3072 3340. #JuevesDeBurgers #LaParrilla #IxtlahuacanDelRio",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg"
+      },
+      {
+        sid: "S4", titulo: "Jueves · Opción B: Reto etiqueta a tu acompañante",
+        fecha: "2026-12-03", dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🔥 Etiqueta en los comentarios a esa persona que ya te debe una Hamburguesa al Carbón de La Parrilla. Hoy prendemos la parrilla de 7:30 pm a 11:30 pm en Col. La Garita, Ixtlahuacán del Río. ¡También tenemos servicio para llevar al WhatsApp 33 3072 3340! #LaParrilla #HamburguesasAlCarbon #IxtlahuacanDelRio",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg"
+      },
+      {
+        sid: "S5", titulo: "Viernes · Opción A: Encuesta de Tacos al Carbón",
         fecha: "2026-12-04", dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST",
-        copy: "🌮 Encuesta oficial en Ixtlahuacán del Río: ¿Con qué taco arrancas el fin de semana en La Parrilla?\n\n1️⃣ Arrachera jugosa\n2️⃣ Diezmillo al carbón\n3️⃣ Chorizo bien doradito\n\nVota con el número en los comentarios y etiqueta a quien te debe una orden. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita. #LaParrilla #TacosAlCarbon #IxtlahuacanDelRio",
+        copy: "🌮 ¡Viernes de menú completo al carbón en La Parrilla! ¿De qué vas a pedir tus tacos hoy: Arrachera, Diezmillo o Chorizo? Comenta tu favorito y ven a disfrutarlos recién hechos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pedidos por WhatsApp: 33 3072 3340. #TacosAlCarbon #LaParrilla #IxtlahuacanDelRio",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549737/ag53u4xmnirzs1zmvebu.jpg"
+      },
+      {
+        sid: "S6", titulo: "Viernes · Opción B: Detrás de cámaras del carbón",
+        fecha: "2026-12-04", dia: "Vie", hora: "19:00", red: "AMBAS", formato: "STORY",
+        copy: "🔥 ¡Ya huele a carbón en Ixtlahuacán del Río! Menú completo listo desde las 7:30 pm: tacos, parrilladas, gringas y hamburguesas. Pide por WhatsApp al 33 3072 3340.",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549737/ag53u4xmnirzs1zmvebu.jpg"
+      },
+      {
+        sid: "S7", titulo: "Sábado · Opción A: Parrillada para compartir en familia",
+        fecha: "2026-12-05", dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🥩 ¡Sábado de armar la mesa en grande! Ven por nuestra Parrillada al carbón con arrachera, diezmillo, chorizo, quesadillas y tortillas hechas a mano en el momento. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o pídela para llevar por WhatsApp al 33 3072 3340. #Parrillada #LaParrilla #IxtlahuacanDelRio",
         foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg"
       },
       {
-        sid: "S2", titulo: "📲 Historia 9:16: Pedidos para llevar por WhatsApp",
-        fecha: "2026-12-03", dia: "Jue", hora: "18:30", red: "AMBAS", formato: "STORY",
-        copy: "📲 ¿Antojo en casa? Pide tus hamburguesas o boneless por WhatsApp al 33 3072 3340 (7:30 pm a 11:30 pm).",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549729/dpogosacyxs2zrqgbv23.jpg"
+        sid: "S8", titulo: "Sábado · Opción B: Noche de amigos y carbón",
+        fecha: "2026-12-05", dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🔥 ¿Sin plan para cenar hoy sábado? En La Parrilla tenemos listo todo nuestro menú completo al carbón para que vengas con tu familia o amigos, o pidas directo a casa por WhatsApp al 33 3072 3340. Estamos de 7:30 pm a 11:30 pm en Col. La Garita, Ixtlahuacán del Río. #SabadoDeParrilla #LaParrilla #IxtlahuacanDelRio",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg"
       },
       {
-        sid: "S3", titulo: "🔥 Promo Parrillada Familiar de Fin de Semana",
-        fecha: "2026-12-05", dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST",
-        copy: "🔥 ¡Fin de semana de compartir alrededor del carbón en La Parrilla! Ven con tu familia o amigos por nuestras parrilladas con arrachera, diezmillo, chorizo, quesadillas, tortillas hechas a mano, nopales, cebollitas y nuestras salsas de la casa.\n\nTe esperamos de viernes a domingo, de 7:30 pm a 11:30 pm, en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pedidos para llevar por WhatsApp al 33 3072 3340. #ParrilladasLaParrilla #IxtlahuacanDelRio #SaborAlCarbon",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549728/kjgmbt8clkx9zzmkfpwq.jpg"
+        sid: "S9", titulo: "Domingo · Opción A: Cierre de semana con Gringa Parrillera",
+        fecha: "2026-12-06", dia: "Dom", hora: "18:00", red: "AMBAS", formato: "POST",
+        copy: "🧀 ¡Cierra el domingo como se debe con una Gringa Parrillera recién salida del carbón! Carne al gusto, queso fundido y tortillas recién hechas. Te esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o pide por WhatsApp al 33 3072 3340. #DomingoDeParrilla #GringaParrillera #LaParrilla",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg"
+      },
+      {
+        sid: "S10", titulo: "Domingo · Opción B: Domingo sin cocinar en casa",
+        fecha: "2026-12-06", dia: "Dom", hora: "18:30", red: "AMBAS", formato: "STORY",
+        copy: "🙌 ¡Hoy domingo no cocines! Pide tus tacos al carbón, gringas o hamburguesas por WhatsApp al 33 3072 3340 o visítanos de 7:30 pm a 11:30 pm en Col. La Garita, Ixtlahuacán del Río.",
+        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg"
       }
     ];
 
-    const KEYS = { posts: "lp_studio_posts_v2", sugs: "lp_studio_sugs_v2", sync: "lp_studio_sync_v2" };
+    const KEYS = { posts: "lp_studio_posts_v2", sugs: "lp_studio_sugs_v3", sync: "lp_studio_sync_v2" };
     let posts = loadJson(KEYS.posts, INITIAL_POSTS);
     let suggestions = loadJson(KEYS.sugs, INITIAL_SUGGESTIONS);
     let gallery = INITIAL_GALLERY.slice();
@@ -620,6 +662,7 @@
 
     let currentFilter = "ALL";
     let dayFilter = null;
+    let sugDayFilter = "Todos";
     const previewMode = {};
     const editorOpen = {};
     let galleryTargetPostId = null;
@@ -861,11 +904,17 @@
       }
 
       if (currentFilter === "SUGGESTIONS") {
-        if (!suggestions.length) {
-          feed.innerHTML = `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay sugerencias pendientes. Toca ↺ abajo para restaurar.</div>`;
+        const sugDays = ["Todos", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+        const sugBar = `
+          <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;">
+            ${sugDays.map(d => `<button class="filter-btn ${sugDayFilter === d ? "active" : ""}" data-sug-day="${d}">${d}</button>`).join("")}
+          </div>`;
+        const filteredSugs = suggestions.filter(s => sugDayFilter === "Todos" || s.dia === sugDayFilter);
+        if (!filteredSugs.length) {
+          feed.innerHTML = sugBar + `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay sugerencias pendientes${sugDayFilter !== "Todos" ? " para " + sugDayFilter : ""}. Toca ↺ abajo para restaurar.</div>`;
           return;
         }
-        feed.innerHTML = suggestions.map(sug => {
+        feed.innerHTML = sugBar + filteredSugs.map(sug => {
           const mode = previewMode[sug.sid] || (sug.formato === "STORY" ? "STORY" : "IG");
           return `
             <article class="card" data-sid="${sug.sid}">
@@ -1000,6 +1049,12 @@
     });
 
     document.getElementById("feed").addEventListener("click", async (e) => {
+      const sugDayBtn = e.target.closest("[data-sug-day]");
+      if (sugDayBtn) {
+        sugDayFilter = sugDayBtn.dataset.sugDay;
+        render();
+        return;
+      }
       const card = e.target.closest(".card");
       if (!card) return;
 
@@ -1022,7 +1077,7 @@
           suggestions.splice(idx, 1);
           saveLocal();
           render();
-          const synced = await pushToSheets({ action: "addPost", ...newPost, titulo: sug.titulo });
+          const synced = await pushToSheets({ action: "create", ...newPost, red: sug.red || "AMBAS", idea: sug.titulo, titulo: sug.titulo });
           showToast(synced ? `☁️ Movida a Borradores (ID ${nextId}) en Sheets` : `Movida a Borradores con ID ${nextId}`);
         } else if (actionBtn.dataset.action === "decline-sug") {
           suggestions.splice(idx, 1);
