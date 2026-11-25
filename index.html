@@ -720,10 +720,21 @@
       return issues;
     }
 
+    function formatHora(val) {
+      const s = String(val || "").trim();
+      if (!s) return "18:00";
+      if (/^\d{1,2}:\d{2}/.test(s)) return s.slice(0, 5);
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      }
+      return "18:00";
+    }
+
     async function syncFromSheets(silent = false) {
       if (!syncCfg.url) return;
       try {
-        const res = await fetch(`${syncCfg.url}?token=${encodeURIComponent(syncCfg.pin)}`);
+        const res = await fetch(`${syncCfg.url}?pin=${encodeURIComponent(syncCfg.pin)}&token=${encodeURIComponent(syncCfg.pin)}`);
         const data = await res.json();
         if (!data.ok) {
           if (!silent) showToast("Error Sheets: " + (data.error || "PIN"));
@@ -732,16 +743,19 @@
         if (Array.isArray(data.publicaciones) && data.publicaciones.length) {
           posts = data.publicaciones
             .filter(r => Number(r.ID) >= 3)
-            .map(r => ({
-              id: Number(r.ID),
-              fecha: r.Fecha || "",
-              dia: getDiaFromFecha(r.Fecha),
-              hora: r.Hora || "18:00",
-              formato: (r.Formato || "POST").toUpperCase(),
-              estado: (r.Estado || "BORRADOR").toUpperCase(),
-              copy: r.Copy_Final || "",
-              foto: r.URL_Media || INITIAL_GALLERY[0].url
-            }));
+            .map(r => {
+              const fechaClean = String(r.Fecha || "").slice(0, 10);
+              return {
+                id: Number(r.ID),
+                fecha: fechaClean,
+                dia: getDiaFromFecha(fechaClean),
+                hora: formatHora(r.Hora),
+                formato: (r.Formato || "POST").toUpperCase(),
+                estado: (r.Estado || "BORRADOR").toUpperCase(),
+                copy: r.Copy_Final || "",
+                foto: r.URL_Media || INITIAL_GALLERY[0].url
+              };
+            });
         }
         if (Array.isArray(data.galeria) && data.galeria.length) {
           const mapped = data.galeria
@@ -769,7 +783,7 @@
         const res = await fetch(syncCfg.url, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ token: syncCfg.pin, ...payload })
+          body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, ...payload })
         });
         const data = await res.json();
         return !!data.ok;
