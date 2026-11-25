@@ -530,10 +530,10 @@
       <p style="margin:0;font-size:12.5px;color:var(--muted);">
         Pega la URL de tu Web App de Google Apps Script (<code>Calendario_LaParrilla → Extensiones → Apps Script</code>) y tu PIN para que cada aprobación, cambio de foto o sugerencia aceptada se guarde al instante en Google Sheets.
       </p>
-      <label style="font-size:12px;color:var(--muted);font-weight:700;">URL del Web App (https://script.google.com/macros/s/.../exec)</label>
-      <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" />
+      <label style="font-size:12px;color:var(--muted);font-weight:700;">URL del Web App</label>
+      <input type="url" id="gasUrlInput" placeholder="Pega aquí la URL de tu Web App" />
       <label style="font-size:12px;color:var(--muted);font-weight:700;">PIN de seguridad</label>
-      <input type="password" id="gasPinInput" placeholder="LP2026" value="LP2026" />
+      <input type="password" id="gasPinInput" placeholder="Ingresa tu PIN" value="" />
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <button class="btn-primary" id="saveSyncBtn">💾 Guardar y Sincronizar</button>
         <button class="btn btn-decline" id="disconnectSyncBtn">Desconectar</button>
@@ -658,7 +658,7 @@
     let suggestions = loadJson(KEYS.sugs, INITIAL_SUGGESTIONS);
     let gallery = INITIAL_GALLERY.slice();
     let metrics = [];
-    let syncCfg = loadJson(KEYS.sync, { url: "", pin: "LP2026" });
+    let syncCfg = loadJson(KEYS.sync, { url: "", pin: "" });
 
     let currentFilter = "ALL";
     let dayFilter = null;
@@ -1186,13 +1186,13 @@
     document.getElementById("closeGalleryBtn").addEventListener("click", () => document.getElementById("galleryModal").classList.remove("open"));
     document.getElementById("syncPill").addEventListener("click", () => {
       document.getElementById("gasUrlInput").value = syncCfg.url || "";
-      document.getElementById("gasPinInput").value = syncCfg.pin || "LP2026";
+      document.getElementById("gasPinInput").value = syncCfg.pin || "";
       document.getElementById("syncModal").classList.add("open");
     });
     document.getElementById("closeSyncBtn").addEventListener("click", () => document.getElementById("syncModal").classList.remove("open"));
     document.getElementById("saveSyncBtn").addEventListener("click", async () => {
       syncCfg.url = document.getElementById("gasUrlInput").value.trim();
-      syncCfg.pin = document.getElementById("gasPinInput").value.trim() || "LP2026";
+      syncCfg.pin = document.getElementById("gasPinInput").value.trim();
       saveLocal();
       document.getElementById("syncModal").classList.remove("open");
       render();
