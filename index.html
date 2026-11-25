@@ -406,6 +406,54 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .dest-box {
+      padding: 11px 14px;
+      background: #16120f;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dest-shortcuts {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .dest-shortcut-btn {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: #fdba74;
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .dest-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+    }
+    .dest-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dest-chip.checked {
+      border-color: var(--accent);
+      background: rgba(249, 115, 22, 0.14);
+      color: #fff;
+    }
+    .dest-chip input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+    .dest-summary { font-size: 11px; color: var(--muted); }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -665,9 +713,68 @@
     let sugDayFilter = "Todos";
     const previewMode = {};
     const editorOpen = {};
+    const destState = {};
+    const sugInitialEstado = {};
     let galleryTargetPostId = null;
+    let galleryTargetSugId = null;
     let galleryCropMode = "ORIG";
     let galleryCatFilter = "Todas";
+
+    function getDefaultDest(formato, red) {
+      const r = String(red || "AMBAS").toUpperCase();
+      const isP = String(formato || "POST").toUpperCase() === "POST";
+      const isS = String(formato || "").toUpperCase() === "STORY";
+      return {
+        postFb: isP && r !== "IG",
+        postIg: isP && r !== "FB",
+        storyFb: isS && r !== "IG",
+        storyIg: isS && r !== "FB"
+      };
+    }
+    function getDest(key, formato, red) {
+      if (!destState[key]) destState[key] = getDefaultDest(formato, red);
+      return destState[key];
+    }
+    function groupDestinations(d) {
+      const groups = [];
+      if (d.postFb || d.postIg) {
+        groups.push({ formato: "POST", red: (d.postFb && d.postIg) ? "AMBAS" : (d.postFb ? "FB" : "IG") });
+      }
+      if (d.storyFb || d.storyIg) {
+        groups.push({ formato: "STORY", red: (d.storyFb && d.storyIg) ? "AMBAS" : (d.storyFb ? "FB" : "IG") });
+      }
+      return groups;
+    }
+    function renderDestSelector(key, d) {
+      const groups = groupDestinations(d);
+      const summary = groups.length
+        ? "Se guardará en Sheets como: " + groups.map(g => `${g.formato} (${g.red})`).join(" + ")
+        : "⚠️ Selecciona al menos 1 destino";
+      return `
+        <div class="dest-box" data-dest-key="${key}">
+          <div style="font-size:11.5px;font-weight:800;color:var(--text);">📲 Destinos de publicación:</div>
+          <div class="dest-shortcuts">
+            <button type="button" class="dest-shortcut-btn" data-shortcut="ALL">✨ Todo (Post + Historias FB/IG)</button>
+            <button type="button" class="dest-shortcut-btn" data-shortcut="POSTS">📰 Solo Posts (FB + IG)</button>
+            <button type="button" class="dest-shortcut-btn" data-shortcut="STORIES">📱 Solo Historias (FB + IG)</button>
+          </div>
+          <div class="dest-grid">
+            <label class="dest-chip ${d.postFb ? "checked" : ""}">
+              <input type="checkbox" data-dest-field="postFb" ${d.postFb ? "checked" : ""} /> Post Facebook
+            </label>
+            <label class="dest-chip ${d.postIg ? "checked" : ""}">
+              <input type="checkbox" data-dest-field="postIg" ${d.postIg ? "checked" : ""} /> Post Instagram
+            </label>
+            <label class="dest-chip ${d.storyFb ? "checked" : ""}">
+              <input type="checkbox" data-dest-field="storyFb" ${d.storyFb ? "checked" : ""} /> Historia Facebook
+            </label>
+            <label class="dest-chip ${d.storyIg ? "checked" : ""}">
+              <input type="checkbox" data-dest-field="storyIg" ${d.storyIg ? "checked" : ""} /> Historia Instagram
+            </label>
+          </div>
+          <div class="dest-summary">${summary}</div>
+        </div>`;
+    }
 
     function loadJson(k, fallback) {
       try { const r = localStorage.getItem(k); if (r) return JSON.parse(r); } catch {}
@@ -930,6 +1037,8 @@
         }
         feed.innerHTML = sugBar + filteredSugs.map(sug => {
           const mode = previewMode[sug.sid] || (sug.formato === "STORY" ? "STORY" : "IG");
+          const dest = getDest("S_" + sug.sid, sug.formato, sug.red);
+          const initEst = sugInitialEstado[sug.sid] || "BORRADOR";
           return `
             <article class="card" data-sid="${sug.sid}">
               <div class="card-top">
@@ -947,8 +1056,14 @@
                 <button class="mode-btn ${mode === "FB" ? "active" : ""}" data-mode="FB">Facebook Post</button>
               </div>
               <div class="preview-stage">${renderMockup({ id: sug.sid, fecha: sug.fecha, dia: sug.dia, hora: sug.hora, copy: sug.copy, foto: sug.foto }, mode)}</div>
-              <div class="sug-actions">
+              ${renderDestSelector("S_" + sug.sid, dest)}
+              <div style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:#16120f;border-top:1px solid var(--border);font-size:12px;">
+                <span style="color:var(--muted);font-weight:700;">Estado al programar:</span>
+                <button type="button" class="filter-btn ${initEst === "APROBADO" ? "active" : ""}" data-action="toggle-sug-estado">${initEst}</button>
+              </div>
+              <div class="sug-actions" style="grid-template-columns:1fr 1fr 1fr;">
                 <button class="btn btn-approve" data-action="accept-sug">✓ Aceptar</button>
+                <button class="btn" data-action="open-gallery-sug">🖼️ Foto</button>
                 <button class="btn btn-decline" data-action="decline-sug">✕ Declinar</button>
               </div>
             </article>`;
@@ -1009,7 +1124,8 @@
             <div class="editor-area ${isEditing ? "" : "hidden"}">
               <label style="font-size:12px;color:var(--muted);font-weight:700;">Editar texto en vivo:</label>
               <textarea data-edit-id="${post.id}">${escapeHtml(post.copy)}</textarea>
-              ${syncCfg.url ? `<button class="btn btn-approve" data-action="save-copy-sheets">☁️ Guardar texto en Sheets</button>` : ""}
+              ${renderDestSelector("P_" + post.id, getDest("P_" + post.id, post.formato, post.red || "AMBAS"))}
+              <button class="btn btn-approve" data-action="save-copy-sheets">💾 Guardar texto y destinos</button>
             </div>
             <div class="card-actions">
               <button class="btn btn-approve ${isApproved ? "is-approved" : ""}" data-action="toggle-approve">
@@ -1062,7 +1178,34 @@
       });
     });
 
+    document.getElementById("feed").addEventListener("change", (e) => {
+      const cb = e.target.closest("input[data-dest-field]");
+      if (!cb) return;
+      const box = cb.closest("[data-dest-key]");
+      if (!box) return;
+      const key = box.dataset.destKey;
+      const d = destState[key];
+      if (!d) return;
+      d[cb.dataset.destField] = cb.checked;
+      render();
+    });
+
     document.getElementById("feed").addEventListener("click", async (e) => {
+      const shortcutBtn = e.target.closest("[data-shortcut]");
+      if (shortcutBtn) {
+        const box = shortcutBtn.closest("[data-dest-key]");
+        if (!box) return;
+        const key = box.dataset.destKey;
+        const sc = shortcutBtn.dataset.shortcut;
+        destState[key] = sc === "ALL"
+          ? { postFb: true, postIg: true, storyFb: true, storyIg: true }
+          : sc === "POSTS"
+            ? { postFb: true, postIg: true, storyFb: false, storyIg: false }
+            : { postFb: false, postIg: false, storyFb: true, storyIg: true };
+        render();
+        return;
+      }
+
       const sugDayBtn = e.target.closest("[data-sug-day]");
       if (sugDayBtn) {
         sugDayFilter = sugDayBtn.dataset.sugDay;
@@ -1081,19 +1224,40 @@
         if (modeBtn) { previewMode[sid] = modeBtn.dataset.mode; render(); return; }
         const actionBtn = e.target.closest("[data-action]");
         if (!actionBtn) return;
-        if (actionBtn.dataset.action === "accept-sug") {
-          const nextId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-          const newPost = {
-            id: nextId, fecha: sug.fecha, dia: sug.dia, hora: sug.hora,
-            formato: sug.formato, estado: "BORRADOR", copy: sug.copy, foto: sug.foto
-          };
-          posts.push(newPost);
+        const action = actionBtn.dataset.action;
+        if (action === "toggle-sug-estado") {
+          sugInitialEstado[sid] = (sugInitialEstado[sid] || "BORRADOR") === "BORRADOR" ? "APROBADO" : "BORRADOR";
+          render();
+        } else if (action === "open-gallery-sug") {
+          galleryTargetSugId = sid;
+          galleryTargetPostId = null;
+          galleryCropMode = sug.formato === "STORY" ? "STORY" : "ORIG";
+          document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === galleryCropMode));
+          renderGalleryModal();
+          document.getElementById("galleryModal").classList.add("open");
+        } else if (action === "accept-sug") {
+          const dest = getDest("S_" + sid, sug.formato, sug.red);
+          const groups = groupDestinations(dest);
+          if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
+          const estado = sugInitialEstado[sid] || "BORRADOR";
+          const createdIds = [];
+          let syncedAll = true;
+          for (const grp of groups) {
+            const nextId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+            const newPost = {
+              id: nextId, fecha: sug.fecha, dia: sug.dia, hora: sug.hora,
+              red: grp.red, formato: grp.formato, estado, copy: sug.copy, foto: sug.foto
+            };
+            posts.push(newPost);
+            createdIds.push(`${nextId} (${grp.formato}/${grp.red})`);
+            const ok = await pushToSheets({ action: "create", ...newPost, idea: sug.titulo, titulo: sug.titulo });
+            if (!ok) syncedAll = false;
+          }
           suggestions.splice(idx, 1);
           saveLocal();
           render();
-          const synced = await pushToSheets({ action: "create", ...newPost, red: sug.red || "AMBAS", idea: sug.titulo, titulo: sug.titulo });
-          showToast(synced ? `☁️ Movida a Borradores (ID ${nextId}) en Sheets` : `Movida a Borradores con ID ${nextId}`);
-        } else if (actionBtn.dataset.action === "decline-sug") {
+          showToast(syncedAll && syncCfg.url ? `☁️ Creadas en Sheets: ${createdIds.join(" + ")}` : `Programada(s): ${createdIds.join(" + ")}`);
+        } else if (action === "decline-sug") {
           suggestions.splice(idx, 1);
           saveLocal();
           render();
@@ -1136,10 +1300,28 @@
         editorOpen[id] = !editorOpen[id];
         render();
       } else if (action === "save-copy-sheets") {
-        const synced = await pushToSheets({ action: "updatePost", id, copy: post.copy });
-        showToast(synced ? `☁️ Copy de ID ${id} guardado en Sheets` : "No se pudo guardar en Sheets");
+        const dest = getDest("P_" + id, post.formato, post.red || "AMBAS");
+        const groups = groupDestinations(dest);
+        if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
+        post.formato = groups[0].formato;
+        post.red = groups[0].red;
+        let synced = await pushToSheets({ action: "updatePost", id, copy: post.copy, formato: post.formato, red: post.red });
+        if (groups.length > 1) {
+          const extraId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+          const extraPost = {
+            id: extraId, fecha: post.fecha, dia: post.dia, hora: post.hora,
+            red: groups[1].red, formato: groups[1].formato, estado: post.estado, copy: post.copy, foto: post.foto
+          };
+          posts.push(extraPost);
+          const ok2 = await pushToSheets({ action: "create", ...extraPost, idea: `Copia ${groups[1].formato} de ID ${id}` });
+          synced = synced && ok2;
+        }
+        saveLocal();
+        render();
+        showToast(synced && syncCfg.url ? `☁️ Guardado en Sheets (${groups.map(g => g.formato + "/" + g.red).join(" + ")})` : "Cambios guardados localmente");
       } else if (action === "open-gallery") {
         galleryTargetPostId = id;
+        galleryTargetSugId = null;
         galleryCropMode = post.formato === "STORY" ? "STORY" : "ORIG";
         document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === galleryCropMode));
         renderGalleryModal();
@@ -1187,9 +1369,20 @@
     document.getElementById("galleryGrid").addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-pick-url]");
       if (!btn) return;
+      const newUrl = applyCloudinaryTransform(btn.dataset.pickUrl, galleryCropMode);
+      if (galleryTargetSugId) {
+        const sug = suggestions.find(s => s.sid === galleryTargetSugId);
+        if (!sug) return;
+        sug.foto = newUrl;
+        saveLocal();
+        document.getElementById("galleryModal").classList.remove("open");
+        render();
+        showToast(`Foto actualizada en Sugerencia ${sug.sid}`);
+        return;
+      }
       const post = posts.find(p => p.id === galleryTargetPostId);
       if (!post) return;
-      post.foto = applyCloudinaryTransform(btn.dataset.pickUrl, galleryCropMode);
+      post.foto = newUrl;
       saveLocal();
       document.getElementById("galleryModal").classList.remove("open");
       render();
