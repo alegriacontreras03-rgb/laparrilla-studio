@@ -545,9 +545,42 @@
 
   <div class="bottom-bar">
     <div class="bottom-inner">
+      <button class="btn-secondary" id="newPostBtn" style="border-color:var(--accent);color:#fdba74;">➕ Nueva</button>
       <button class="btn-primary" id="copyApprovedBtn">📋 Copiar aprobadas</button>
       <button class="btn-secondary" id="syncNowBtn" title="Sincronizar con Sheets">🔄</button>
       <button class="btn-secondary" id="resetBtn" title="Restaurar datos locales">↺</button>
+    </div>
+  </div>
+
+  <!-- Modal: Nueva publicación desde cero -->
+  <div class="modal-backdrop" id="newPostModal">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h2>➕ Nueva publicación</h2>
+        <button class="btn" id="closeNewPostBtn">✖ Cerrar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Fecha</label>
+          <input type="date" id="newPostFecha" />
+        </div>
+        <div>
+          <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Hora</label>
+          <input type="time" id="newPostHora" value="18:00" />
+        </div>
+      </div>
+      <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Copy / Texto</label>
+      <textarea id="newPostCopy" placeholder="Escribe el texto de tu publicación (sin precios $)..."></textarea>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img id="newPostThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg" alt="Vista previa" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--border);" />
+        <button type="button" class="btn" id="newPostPickPhotoBtn" style="flex:1;">🖼️ Elegir o subir foto</button>
+      </div>
+      <div id="newPostDestContainer"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--muted);font-weight:700;">Estado inicial:</span>
+        <button type="button" class="filter-btn" id="newPostEstadoBtn">BORRADOR</button>
+      </div>
+      <button class="btn-primary" id="saveNewPostBtn">💾 Guardar publicación</button>
     </div>
   </div>
 
@@ -557,6 +590,13 @@
       <div class="modal-head">
         <h2>🖼️ Galería Cloudinary (sgn99usk)</h2>
         <button class="btn" id="closeGalleryBtn">✖ Cerrar</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#16120f;border:1px solid var(--border);border-radius:12px;">
+        <label class="btn" style="cursor:pointer;border-color:var(--accent);color:#fdba74;">
+          📸 Subir foto nueva
+          <input type="file" id="camUploadInput" accept="image/*" capture="environment" style="display:none;" />
+        </label>
+        <input type="text" id="cldPresetInput" placeholder="Upload Preset Cloudinary (ej. laparrilla_unsigned)" style="flex:1;min-width:160px;padding:7px 10px;font-size:12px;" />
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;" id="cropTabs">
         <button class="filter-btn active" data-crop="ORIG">Original</button>
@@ -706,7 +746,7 @@
     let suggestions = loadJson(KEYS.sugs, INITIAL_SUGGESTIONS);
     let gallery = INITIAL_GALLERY.slice();
     let metrics = [];
-    let syncCfg = loadJson(KEYS.sync, { url: "", pin: "" });
+    let syncCfg = loadJson(KEYS.sync, { url: "", pin: "", preset: "" });
 
     let currentFilter = "ALL";
     let dayFilter = null;
@@ -717,6 +757,9 @@
     const sugInitialEstado = {};
     let galleryTargetPostId = null;
     let galleryTargetSugId = null;
+    let galleryTargetNewPost = false;
+    let newPostEstado = "BORRADOR";
+    let newPostPhoto = INITIAL_GALLERY[3].url;
     let galleryCropMode = "ORIG";
     let galleryCatFilter = "Todas";
 
@@ -903,7 +946,7 @@
       const days = ["Mié", "Jue", "Vie", "Sáb", "Dom"];
       const strip = document.getElementById("weekStrip");
       strip.innerHTML = days.map(d => {
-        const dayPosts = posts.filter(p => (p.dia || getDiaFromFecha(p.fecha)) === d);
+        const dayPosts = posts.filter(p => p.estado !== "CANCELADO" && (p.dia || getDiaFromFecha(p.fecha)) === d);
         const dots = dayPosts.map(p => {
           const cls = p.estado === "PUBLICADO" ? "published" : (p.estado === "APROBADO" ? "approved" : "draft");
           return `<span class="dot ${cls}"></span>`;
@@ -992,6 +1035,7 @@
           <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de WhatsApp (33 3072 3340)</h3>
           <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque cómo le aparece el mensaje prellenado a tus clientes desde Facebook o Instagram.</p>
           <a class="btn btn-wa" href="${waTestUrl}" target="_blank" rel="noopener">💬 Abrir enlace de prueba en WhatsApp</a>
+          <a class="btn" href="https://www.facebook.com/La-Parrilla-106299351752487" target="_blank" rel="noopener" style="border-color:#1877f2;color:#93c5fd;">🚀 Abrir Página FB para compartir en grupos de Ixtlahuacán</a>
         </div>
         <div class="card" style="padding:14px;">
           <h3 style="margin:0 0 8px;font-size:15px;">📈 Últimos cortes (Metricas_y_Horarios)</h3>
@@ -1009,9 +1053,10 @@
         pill.classList.remove("live");
       }
 
-      const approvedCount = posts.filter(p => p.estado === "APROBADO").length;
-      const draftCount = posts.filter(p => p.estado === "BORRADOR").length;
-      document.getElementById("tabAll").textContent = `Todas (${posts.length})`;
+      const activePosts = posts.filter(p => p.estado !== "CANCELADO");
+      const approvedCount = activePosts.filter(p => p.estado === "APROBADO").length;
+      const draftCount = activePosts.filter(p => p.estado === "BORRADOR").length;
+      document.getElementById("tabAll").textContent = `Todas (${activePosts.length})`;
       document.getElementById("tabDraft").textContent = `Borradores (${draftCount})`;
       document.getElementById("tabApproved").textContent = `Aprobadas (${approvedCount})`;
       document.getElementById("tabSug").textContent = `💡 Sugerencias (${suggestions.length})`;
@@ -1071,7 +1116,7 @@
         return;
       }
 
-      const visible = posts.filter(p => {
+      const visible = activePosts.filter(p => {
         const matchTab = currentFilter === "ALL" || p.estado === currentFilter;
         const matchDay = !dayFilter || (p.dia || getDiaFromFecha(p.fecha)) === dayFilter;
         return matchTab && matchDay;
@@ -1101,6 +1146,12 @@
             </div>
           </div>` : "";
 
+        const shareGroupsHtml = isPublished ? `
+          <div style="padding:10px 14px;background:#161310;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="font-size:12px;color:#93c5fd;font-weight:700;">🚀 Multiplica alcance en Ixtlahuacán:</span>
+            <button class="btn" data-action="share-fb-groups" style="border-color:#1877f2;color:#93c5fd;">Compartir en grupos</button>
+          </div>` : "";
+
         return `
           <article class="card ${cardCls}" data-id="${post.id}">
             <div class="card-top">
@@ -1121,11 +1172,25 @@
             </div>
             <div class="preview-stage" id="preview-${post.id}">${renderMockup(post, mode)}</div>
             ${storyKitHtml}
+            ${shareGroupsHtml}
             <div class="editor-area ${isEditing ? "" : "hidden"}">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div>
+                  <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Fecha:</label>
+                  <input type="date" data-edit-fecha="${post.id}" value="${escapeHtml(post.fecha)}" />
+                </div>
+                <div>
+                  <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Hora:</label>
+                  <input type="time" data-edit-hora="${post.id}" value="${escapeHtml(post.hora)}" />
+                </div>
+              </div>
               <label style="font-size:12px;color:var(--muted);font-weight:700;">Editar texto en vivo:</label>
               <textarea data-edit-id="${post.id}">${escapeHtml(post.copy)}</textarea>
               ${renderDestSelector("P_" + post.id, getDest("P_" + post.id, post.formato, post.red || "AMBAS"))}
-              <button class="btn btn-approve" data-action="save-copy-sheets">💾 Guardar texto y destinos</button>
+              <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;">
+                <button class="btn btn-approve" data-action="save-copy-sheets">💾 Guardar cambios</button>
+                <button class="btn btn-decline" data-action="cancel-post">🗑️ Cancelar</button>
+              </div>
             </div>
             <div class="card-actions">
               <button class="btn btn-approve ${isApproved ? "is-approved" : ""}" data-action="toggle-approve">
@@ -1305,7 +1370,7 @@
         if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
         post.formato = groups[0].formato;
         post.red = groups[0].red;
-        let synced = await pushToSheets({ action: "updatePost", id, copy: post.copy, formato: post.formato, red: post.red });
+        let synced = await pushToSheets({ action: "updatePost", id, copy: post.copy, fecha: post.fecha, hora: post.hora, formato: post.formato, red: post.red });
         if (groups.length > 1) {
           const extraId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
           const extraPost = {
@@ -1319,9 +1384,21 @@
         saveLocal();
         render();
         showToast(synced && syncCfg.url ? `☁️ Guardado en Sheets (${groups.map(g => g.formato + "/" + g.red).join(" + ")})` : "Cambios guardados localmente");
+      } else if (action === "cancel-post") {
+        if (!confirm(`¿Cancelar la publicación ID ${id}?`)) return;
+        post.estado = "CANCELADO";
+        saveLocal();
+        render();
+        const synced = await pushToSheets({ action: "updatePost", id, estado: "CANCELADO" });
+        showToast(synced ? `☁️ ID ${id} cancelada en Sheets` : `ID ${id} cancelada`);
+      } else if (action === "share-fb-groups") {
+        try { await navigator.clipboard.writeText(post.copy); } catch {}
+        window.open("https://www.facebook.com/La-Parrilla-106299351752487", "_blank", "noopener");
+        showToast("Copy copiado · Abriendo Facebook para compartir en grupos");
       } else if (action === "open-gallery") {
         galleryTargetPostId = id;
         galleryTargetSugId = null;
+        galleryTargetNewPost = false;
         galleryCropMode = post.formato === "STORY" ? "STORY" : "ORIG";
         document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === galleryCropMode));
         renderGalleryModal();
@@ -1333,6 +1410,18 @@
     });
 
     document.getElementById("feed").addEventListener("input", (e) => {
+      const fInp = e.target.closest("input[data-edit-fecha]");
+      if (fInp) {
+        const p = posts.find(x => x.id === Number(fInp.dataset.editFecha));
+        if (p) { p.fecha = fInp.value; p.dia = getDiaFromFecha(p.fecha); saveLocal(); renderWeekStrip(); }
+        return;
+      }
+      const hInp = e.target.closest("input[data-edit-hora]");
+      if (hInp) {
+        const p = posts.find(x => x.id === Number(hInp.dataset.editHora));
+        if (p) { p.hora = hInp.value; saveLocal(); }
+        return;
+      }
       const ta = e.target.closest("textarea[data-edit-id]");
       if (!ta) return;
       const id = Number(ta.dataset.editId);
@@ -1370,6 +1459,13 @@
       const btn = e.target.closest("[data-pick-url]");
       if (!btn) return;
       const newUrl = applyCloudinaryTransform(btn.dataset.pickUrl, galleryCropMode);
+      if (galleryTargetNewPost) {
+        newPostPhoto = newUrl;
+        document.getElementById("newPostThumb").src = newUrl;
+        document.getElementById("galleryModal").classList.remove("open");
+        showToast("Foto seleccionada para nueva publicación");
+        return;
+      }
       if (galleryTargetSugId) {
         const sug = suggestions.find(s => s.sid === galleryTargetSugId);
         if (!sug) return;
@@ -1388,6 +1484,99 @@
       render();
       const synced = await pushToSheets({ action: "updatePost", id: post.id, foto: post.foto });
       showToast(synced ? `☁️ Foto actualizada en Sheets (ID ${post.id})` : `Foto actualizada (ID ${post.id})`);
+    });
+
+    document.getElementById("newPostBtn").addEventListener("click", () => {
+      const d = new Date();
+      document.getElementById("newPostFecha").value = d.toISOString().slice(0, 10);
+      document.getElementById("newPostHora").value = "18:00";
+      document.getElementById("newPostCopy").value = "";
+      document.getElementById("newPostThumb").src = newPostPhoto;
+      document.getElementById("newPostEstadoBtn").textContent = newPostEstado;
+      document.getElementById("newPostEstadoBtn").classList.toggle("active", newPostEstado === "APROBADO");
+      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", getDest("NEW_POST", "POST", "AMBAS"));
+      document.getElementById("newPostModal").classList.add("open");
+    });
+    document.getElementById("closeNewPostBtn").addEventListener("click", () => document.getElementById("newPostModal").classList.remove("open"));
+    document.getElementById("newPostEstadoBtn").addEventListener("click", (e) => {
+      newPostEstado = newPostEstado === "BORRADOR" ? "APROBADO" : "BORRADOR";
+      e.target.textContent = newPostEstado;
+      e.target.classList.toggle("active", newPostEstado === "APROBADO");
+    });
+    document.getElementById("newPostDestContainer").addEventListener("click", (e) => {
+      const sc = e.target.closest("[data-shortcut]");
+      if (!sc) return;
+      const v = sc.dataset.shortcut;
+      destState["NEW_POST"] = v === "ALL"
+        ? { postFb: true, postIg: true, storyFb: true, storyIg: true }
+        : v === "POSTS"
+          ? { postFb: true, postIg: true, storyFb: false, storyIg: false }
+          : { postFb: false, postIg: false, storyFb: true, storyIg: true };
+      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", destState["NEW_POST"]);
+    });
+    document.getElementById("newPostDestContainer").addEventListener("change", (e) => {
+      const cb = e.target.closest("input[data-dest-field]");
+      if (!cb) return;
+      destState["NEW_POST"][cb.dataset.destField] = cb.checked;
+      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", destState["NEW_POST"]);
+    });
+    document.getElementById("newPostPickPhotoBtn").addEventListener("click", () => {
+      galleryTargetNewPost = true;
+      galleryTargetPostId = null;
+      galleryTargetSugId = null;
+      galleryCropMode = "ORIG";
+      document.getElementById("cldPresetInput").value = syncCfg.preset || "";
+      renderGalleryModal();
+      document.getElementById("galleryModal").classList.add("open");
+    });
+    document.getElementById("saveNewPostBtn").addEventListener("click", async () => {
+      const fecha = document.getElementById("newPostFecha").value;
+      const hora = document.getElementById("newPostHora").value || "18:00";
+      const copy = document.getElementById("newPostCopy").value.trim();
+      if (!fecha || !copy) { showToast("Escribe fecha y copy"); return; }
+      const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
+      if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
+      const dia = getDiaFromFecha(fecha);
+      let syncedAll = true;
+      const ids = [];
+      for (const grp of groups) {
+        const nextId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+        const np = { id: nextId, fecha, dia, hora, red: grp.red, formato: grp.formato, estado: newPostEstado, copy, foto: newPostPhoto };
+        posts.push(np);
+        ids.push(nextId);
+        const ok = await pushToSheets({ action: "create", ...np, idea: "Creada desde La Parrilla Studio" });
+        if (!ok) syncedAll = false;
+      }
+      saveLocal();
+      document.getElementById("newPostModal").classList.remove("open");
+      render();
+      showToast(syncedAll && syncCfg.url ? `☁️ Publicación creada en Sheets (ID ${ids.join(", ")})` : `Publicación creada (ID ${ids.join(", ")})`);
+    });
+
+    document.getElementById("camUploadInput").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const preset = document.getElementById("cldPresetInput").value.trim();
+      if (!preset) { showToast("Escribe tu Upload Preset de Cloudinary primero"); return; }
+      syncCfg.preset = preset;
+      saveLocal();
+      showToast("Subiendo foto a Cloudinary...");
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", preset);
+        const res = await fetch("https://api.cloudinary.com/v1_1/sgn99usk/image/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!data.secure_url) { showToast("Error Cloudinary: " + (data.error?.message || "preset")); return; }
+        gallery.unshift({ id: String(Date.now()), cat: "Local", desc: file.name, url: data.secure_url });
+        renderGalleryModal();
+        await pushToSheets({ action: "addMedia", nombre: file.name, url: data.secure_url, categoria: "Local" });
+        showToast("📸 Foto subida a Cloudinary");
+      } catch {
+        showToast("No se pudo subir la foto");
+      } finally {
+        e.target.value = "";
+      }
     });
 
     document.getElementById("closeGalleryBtn").addEventListener("click", () => document.getElementById("galleryModal").classList.remove("open"));
