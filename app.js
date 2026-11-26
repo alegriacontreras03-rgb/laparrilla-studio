@@ -1,6 +1,6 @@
 "use strict";
 
-const APP_VERSION = "v12.1";
+const APP_VERSION = "v12.2";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
 const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
 const AVATAR_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg";
@@ -25,13 +25,13 @@ const INITIAL_GALLERY = [
   { id: "13", cat: "Tacos", desc: "Tacos al Carbón HD", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg" },
   { id: "14", cat: "Menu", desc: "Menú Oficial Completo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549742/tdfyo1hnfrdrffezkjhx.jpg" },
   { id: "15", cat: "Canva", desc: "Canva: Jueves Burgers al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714992/laparrilla_canva/canva_jueves_burgers_carbon.jpg" },
-  { id: "16", cat: "Canva", desc: "Canva: Miércoles de Boneless", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg" },
+  { id: "16", cat: "Canva", desc: "Canva: Miércoles de Boneless", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736337/laparrilla_canva/canva_miercoles_boneless.jpg" },
   { id: "17", cat: "Canva", desc: "Canva: Sábado de Parrillada", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg" },
   { id: "18", cat: "Canva", desc: "Canva: Plantilla Historia 9:16", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" },
   { id: "19", cat: "Canva", desc: "Canva: Menú Mié–Jue", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715003/laparrilla_canva/canva_menu_mie_jue.jpg" },
   { id: "20", cat: "Canva", desc: "Canva: Menú Vie–Dom", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715005/laparrilla_canva/canva_menu_vie_dom.jpg" },
-  { id: "21", cat: "Canva", desc: "Canva: Viernes Tacos al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg" },
-  { id: "22", cat: "Canva", desc: "Canva: Domingo Gringa Parrillera", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717433/laparrilla_canva/canva_domingo_gringa_parrillera.jpg" }
+  { id: "21", cat: "Canva", desc: "Canva: Viernes Tacos al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736332/laparrilla_canva/canva_viernes_tacos_carbon.jpg" },
+  { id: "22", cat: "Canva", desc: "Canva: Domingo Gringa Parrillera", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736335/laparrilla_canva/canva_domingo_gringa_parrillera.jpg" }
 ];
 
 const SVG_ICONS = {
@@ -190,12 +190,27 @@ function getEffectiveStoryCopy(post) {
   return buildAutoStoryCopy(post.copy);
 }
 
+function isGraphicOrFlyerUrl(url) {
+  const u = String(url || "");
+  return u.includes("/laparrilla_canva/") ||
+    /kjgmbt8clkx9zzmkfpwq|dpogosacyxs2zrqgbv23|igeqrqqwrshgngpzfvbg|hwclncghfq1rcwexnoeq|zyguqxpumpwgycc1jjil|oaivtu53xrfmcaosswa5|r2hnfddyonxj127l8uop|ag53u4xmnirzs1zmvebu|hthkfxn3sojgfqjshyjp|tdfyo1hnfrdrffezkjhx/i.test(u);
+}
+
 function applyCloudinaryTransform(url, cropMode) {
   const safe = safeCloudinaryUrl(url, "");
   if (!safe) return "";
   const clean = safe.replace(/\/image\/upload\/(?:[^/]+,[^/]+\/)?/, "/image/upload/");
-  if (cropMode === "FEED") return clean.replace("/image/upload/", "/image/upload/c_fill,g_auto,ar_4:5,w_1080,q_auto,f_auto/");
-  if (cropMode === "STORY") return clean.replace("/image/upload/", "/image/upload/c_fill,g_auto,ar_9:16,w_1080,h_1920,q_auto,f_auto/");
+  const pad = isGraphicOrFlyerUrl(clean);
+  if (cropMode === "FEED") {
+    return clean.replace("/image/upload/", pad
+      ? "/image/upload/c_pad,b_rgb:0d0b0a,ar_4:5,w_1080,q_auto,f_auto/"
+      : "/image/upload/c_fill,g_auto,ar_4:5,w_1080,q_auto,f_auto/");
+  }
+  if (cropMode === "STORY") {
+    return clean.replace("/image/upload/", pad
+      ? "/image/upload/c_pad,b_rgb:0d0b0a,ar_9:16,w_1080,h_1920,q_auto,f_auto/"
+      : "/image/upload/c_fill,g_auto,ar_9:16,w_1080,h_1920,q_auto,f_auto/");
+  }
   return clean;
 }
 
@@ -204,7 +219,7 @@ const INITIAL_POSTS = [
     id: 3, fecha: "2026-11-25", dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST", estado: "PUBLICADO", version: 1, editado_por: "",
     copy: "🔥 ¡Mitad de semana se cura con unos boneless búfalo bien calientitos! Pásale hoy a La Parrilla por los tuyos, recién salidos y con todo el sabor. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pide también para llevar por WhatsApp al 33 3072 3340. #LaParrilla #IxtlahuacanDelRio #Boneless",
     copy_story: "🔥 Miércoles de Boneless búfalo recién salidos. Pide por WhatsApp hoy 7:30 pm 👇",
-    foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg"
+    foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736337/laparrilla_canva/canva_miercoles_boneless.jpg"
   },
   {
     id: 4, fecha: "2026-11-26", dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST", estado: "BORRADOR", version: 1, editado_por: "Esposa",
@@ -216,7 +231,7 @@ const INITIAL_POSTS = [
     id: 5, fecha: "2026-11-27", dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST", estado: "APROBADO", version: 1, editado_por: "",
     copy: "🔥 ¡Ya es viernes y hoy prendemos el carbón con TODO nuestro menú completo! Ven por tus tacos al carbón, parrilladas para compartir, hamburguesas o gringas recién hechas. Te esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o haz tu pedido por WhatsApp al 33 3072 3340. #ViernesDeParrilla #IxtlahuacanDelRio #LaParrilla",
     copy_story: "🌮 ¡Viernes de menú completo al carbón! Tacos, gringas y parrilladas desde 7:30 👇",
-    foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg"
+    foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736332/laparrilla_canva/canva_viernes_tacos_carbon.jpg"
   },
   {
     id: 6, fecha: "2026-11-28", dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST", estado: "APROBADO", version: 1, editado_por: "",
@@ -235,15 +250,15 @@ const INITIAL_POSTS = [
 function buildDefaultSuggestions() {
   const nw = getNextWeekDatesMx();
   return [
-    { sid: "S1", titulo: "Miércoles · A: Boneless crujientes recién bañados", fecha: nw["Mié"], dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🔥 Escucha ese crujido: hoy toca cortar la semana con unos Boneless bien bañados en salsa y papas doraditas al momento. Ven a La Parrilla de 7:30 pm a 11:30 pm en Col. La Garita, o pide directo 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20unos%20Boneless #LaParrilla #MiercolesDeBoneless", copy_story: "🔥 Miércoles de Boneless crujientes. ¿Búfalo o Mango Habanero? Pide por WA 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg" },
+    { sid: "S1", titulo: "Miércoles · A: Boneless crujientes recién bañados", fecha: nw["Mié"], dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🔥 Escucha ese crujido: hoy toca cortar la semana con unos Boneless bien bañados en salsa y papas doraditas al momento. Ven a La Parrilla de 7:30 pm a 11:30 pm en Col. La Garita, o pide directo 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20unos%20Boneless #LaParrilla #MiercolesDeBoneless", copy_story: "🔥 Miércoles de Boneless crujientes. ¿Búfalo o Mango Habanero? Pide por WA 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736337/laparrilla_canva/canva_miercoles_boneless.jpg" },
     { sid: "S2", titulo: "Miércoles · B: Encuesta rápida de salsas y papas", fecha: nw["Mié"], dia: "Mié", hora: "18:30", red: "AMBAS", formato: "STORY", copy: "🌶️ ¿Con qué salsa se disfrutan mejor tus boneless este miércoles: Búfalo clásico o Mango Habanero? Pide los tuyos desde las 7:30 pm 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20boneless", copy_story: "🌶️ ¿Qué salsa manda hoy en tus boneless? Vota aquí y pide desde las 7:30 pm 🔥", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg" },
     { sid: "S3", titulo: "Jueves · A: Burgers al carbón jugosas al momento", fecha: nw["Jue"], dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🍔 Carne jugosa sellada al carbón, queso derretido y pan suavecito recién salido de la parrilla. Te esperamos de 7:30 pm a 11:30 pm en Col. La Garita. Pide por WhatsApp 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20una%20hamburguesa #JuevesDeBurgers #LaParrilla", copy_story: "🍔 Jueves de Burgers al carbón recién salidas. ¿Doble o Hawaiana? Pide hoy 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714992/laparrilla_canva/canva_jueves_burgers_carbon.jpg" },
     { sid: "S4", titulo: "Jueves · B: Reto Burger + Pollo Crispy con papas", fecha: nw["Jue"], dia: "Jue", hora: "18:30", red: "AMBAS", formato: "STORY", copy: "🔥 Etiqueta a quien te debe una hamburguesa al carbón o crispy de pollo con papas hoy jueves. Prendemos brasas de 7:30 pm a 11:30 pm 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20burgers", copy_story: "🔥 Huele a burger al carbón en La Garita. Etiqueta a quien te invita hoy por WA!", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549740/hthkfxn3sojgfqjshyjp.jpg" },
-    { sid: "S5", titulo: "Viernes · A: Viernes de Tacos al Carbón (menú completo)", fecha: nw["Vie"], dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🌮 ¡Arranca el fin de semana con el olor inconfundible del carbón encendido! Hoy viernes tenemos MENÚ COMPLETO: tacos al carbón de arrachera, diezmillo y chorizo. Pide ya 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20tacos%20al%20carbon #ViernesDeTacos #LaParrilla", copy_story: "🌮 ¡Viernes de menú completo! Tacos al carbón desde 7:30 pm. ¿Asada o adobada? 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg" },
+    { sid: "S5", titulo: "Viernes · A: Viernes de Tacos al Carbón (menú completo)", fecha: nw["Vie"], dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🌮 ¡Arranca el fin de semana con el olor inconfundible del carbón encendido! Hoy viernes tenemos MENÚ COMPLETO: tacos al carbón de arrachera, diezmillo y chorizo. Pide ya 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20tacos%20al%20carbon #ViernesDeTacos #LaParrilla", copy_story: "🌮 ¡Viernes de menú completo! Tacos al carbón desde 7:30 pm. ¿Asada o adobada? 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736332/laparrilla_canva/canva_viernes_tacos_carbon.jpg" },
     { sid: "S6", titulo: "Viernes · B: Ya prendimos las brasas (Historia en vivo)", fecha: nw["Vie"], dia: "Vie", hora: "19:15", red: "AMBAS", formato: "STORY", copy: "🔥 ¡El carbón ya está al rojo vivo en La Parrilla! Ven por tacos, gringas, parrilladas o hamburguesas desde las 7:30 pm 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20hoy", copy_story: "🔥 ¡Ya prendimos el carbón! Menú completo listo hoy en La Parrilla. Pide aquí 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" },
     { sid: "S7", titulo: "Sábado · A: Parrillada familiar al carbón para compartir", fecha: nw["Sáb"], dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🥩 Sábado de reunir a la familia alrededor del sabor al carbón. Nuestra Parrillada llega humeante con arrachera, diezmillo, chorizo, quesadillas y tortillas hechas a mano. Aparta por WA 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20una%20parrillada #SabadoDeParrillada #LaParrilla", copy_story: "🥩 Sábado de Parrillada para compartir con tortillas a mano. Aparta por WhatsApp 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg" },
     { sid: "S8", titulo: "Sábado · B: Noche de parrilla con amigos en La Garita", fecha: nw["Sáb"], dia: "Sáb", hora: "18:30", red: "AMBAS", formato: "STORY", copy: "🔥 ¿Sin plan para cenar hoy sábado? Menú completo al carbón de 7:30 pm a 11:30 pm. Pide aquí 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20cenar%20hoy", copy_story: "🔥 ¿Sin plan hoy sábado? Arma la mesa en La Parrilla desde las 7:30 pm. ¡Ven!", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549729/dpogosacyxs2zrqgbv23.jpg" },
-    { sid: "S9", titulo: "Domingo · A: Cierre de semana con Gringa Parrillera", fecha: nw["Dom"], dia: "Dom", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🧀 Nada cierra mejor el domingo que una Gringa Parrillera en tortilla de harina doradita, queso fundido y carne recién salida de las brasas. Pide en un toque 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20una%20Gringa%20Parrillera #DomingoDeGringa #LaParrilla", copy_story: "🧀 Domingo de Gringa Parrillera con queso fundido al carbón. Pide la tuya hoy 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717433/laparrilla_canva/canva_domingo_gringa_parrillera.jpg" },
+    { sid: "S9", titulo: "Domingo · A: Cierre de semana con Gringa Parrillera", fecha: nw["Dom"], dia: "Dom", hora: "18:00", red: "AMBAS", formato: "POST", copy: "🧀 Nada cierra mejor el domingo que una Gringa Parrillera en tortilla de harina doradita, queso fundido y carne recién salida de las brasas. Pide en un toque 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20una%20Gringa%20Parrillera #DomingoDeGringa #LaParrilla", copy_story: "🧀 Domingo de Gringa Parrillera con queso fundido al carbón. Pide la tuya hoy 👇", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795736335/laparrilla_canva/canva_domingo_gringa_parrillera.jpg" },
     { sid: "S10", titulo: "Domingo · B: Domingo sin cocinar, pide por WhatsApp", fecha: nw["Dom"], dia: "Dom", hora: "18:30", red: "AMBAS", formato: "STORY", copy: "🙌 Hoy domingo descansa de la cocina: tacos al carbón, gringas, parrilladas y hamburguesas recién hechas de 7:30 pm a 11:30 pm 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20pedido%20de%20domingo", copy_story: "🙌 Hoy domingo no cocines: pide tacos, gringas o burgers por WhatsApp desde 7:30", foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg" }
   ];
 }
@@ -2560,7 +2575,7 @@ async function runHealthCheck() {
       <div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
     </div>`;
 
-  box.innerHTML = row("⏳", "Comprobando v12.1…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
+  box.innerHTML = row("⏳", "Comprobando v12.2…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
 
   let swOk = true;
   try {
@@ -2571,7 +2586,7 @@ async function runHealthCheck() {
   } catch { swOk = false; }
 
   const appHtml = swOk
-    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.1.")
+    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.2.")
     : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Toca 'Recarga limpia' si notas algo desactualizado.");
 
   let serverHtml = "";
