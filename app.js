@@ -1,6 +1,6 @@
 "use strict";
 
-const APP_VERSION = "v11";
+const APP_VERSION = "v12";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
 const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
 const AVATAR_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg";
@@ -264,6 +264,7 @@ let seenVersions = loadJson(KEYS.seen, {});
 let gallery = INITIAL_GALLERY.slice();
 let metrics = [];
 let errorLogs = [];
+let featureFlags = { insightsSyncEnabled: false, autoCommentsEnabled: false };
 
 let currentView = "CALENDAR";     // CALENDAR | SUGGESTIONS | PULSE
 let currentFilter = "PENDING";    // PENDING | APROBADO | PUBLICADO | ALL | ERRORS | NEW_OTHER
@@ -503,7 +504,10 @@ function mapSheetPostRow(r) {
     fecha_pub_real: String(r.Fecha_Publicacion_Real || ""),
     version: Math.max(1, Number(r.Version) || 1),
     editado_por: String(r.Editado_Por || ""),
-    clics_wa: Number(r.Clics_WA) || 0
+    clics_wa: Number(r.Clics_WA) || 0,
+    alcance: Number(r.Alcance) || 0,
+    interacciones: Number(r.Interacciones) || 0,
+    guardados: Number(r.Guardados) || 0
   };
 }
 
@@ -664,6 +668,10 @@ async function syncFromSheets(silent = false) {
 
     if (Array.isArray(data.metricas)) metrics = data.metricas;
     if (Array.isArray(data.errores)) errorLogs = data.errores;
+    if (data.featureFlags && typeof data.featureFlags === "object") {
+      featureFlags.insightsSyncEnabled = !!data.featureFlags.insightsSyncEnabled;
+      featureFlags.autoCommentsEnabled = !!data.featureFlags.autoCommentsEnabled;
+    }
 
     saveLocal();
     render();
@@ -840,14 +848,20 @@ function renderPulse() {
   const errs = active.filter(p => isErrorEstado(p.estado)).length;
   const totalWaClicks = active.reduce((acc, p) => acc + (Number(p.clics_wa) || 0), 0);
   const topWaPosts = active.filter(p => (Number(p.clics_wa) || 0) > 0).sort((a, b) => b.clics_wa - a.clics_wa).slice(0, 4);
-  const totalReach = metrics.reduce((acc, m) => acc + (Number(m.Alcance) || 0), 0);
-  const totalInt = metrics.reduce((acc, m) => acc + (Number(m.Interacciones) || 0), 0);
+  const postsReach = active.reduce((acc, p) => acc + (Number(p.alcance) || 0), 0);
+  const postsInt = active.reduce((acc, p) => acc + (Number(p.interacciones) || 0), 0);
+  const postsSaved = active.reduce((acc, p) => acc + (Number(p.guardados) || 0), 0);
+  const totalReach = postsReach || metrics.reduce((acc, m) => acc + (Number(m.Alcance) || 0), 0);
+  const totalInt = postsInt || metrics.reduce((acc, m) => acc + (Number(m.Interacciones) || 0), 0);
   const waTestUrl = WA_BASE + encodeURIComponent("Hola La Parrilla, vi su publicación y quiero hacer un pedido para hoy 🔥");
+  const insOn = !!featureFlags.insightsSyncEnabled;
+  const comOn = !!featureFlags.autoCommentsEnabled;
 
   const days = ["Mié", "Jue", "Vie", "Sáb", "Dom"];
   const reachByDay = days.map(d => ({
     dia: d,
-    val: metrics.filter(m => String(m.Dia_Semana || "").startsWith(d.slice(0, 2))).reduce((a, m) => a + (Number(m.Alcance) || 0), 0)
+    val: active.filter(p => (p.dia || getDiaFromFecha(p.fecha)) === d).reduce((a, p) => a + (Number(p.alcance) || 0), 0) ||
+      metrics.filter(m => String(m.Dia_Semana || "").startsWith(d.slice(0, 2))).reduce((a, m) => a + (Number(m.Alcance) || 0), 0)
   }));
   const maxReach = Math.max(1, ...reachByDay.map(x => x.val));
 
@@ -860,7 +874,21 @@ function renderPulse() {
     </div>
     <div class="kpi-grid">
       <div class="kpi-card"><small>Errores</small><strong style="color:${errs ? "var(--red)" : "#86efac"};">${errs}</strong></div>
-      <div class="kpi-card"><small>Alcance / Interacc.</small><strong>${totalReach} / ${totalInt}</strong></div>
+      <div class="kpi-card"><small>Alcance / Interacc. / Guard.</small><strong>${totalReach} / ${totalInt} / ${postsSaved}</strong></div>
+    </div>
+    <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+      <h3 style="margin:0;font-size:var(--fs-md);">🌱 Crecimiento orgánico (interruptores)</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-xs);padding:6px 10px;border-radius:10px;background:#15110e;border:1px solid var(--border);">
+        <span>📊 Métricas Meta (nocturno)</span>
+        <span class="status-badge ${insOn ? "approved" : "draft"}">${insOn ? "ON" : "OFF"}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-xs);padding:6px 10px;border-radius:10px;background:#15110e;border:1px solid var(--border);">
+        <span>💬 Auto-respuesta comentarios</span>
+        <span class="status-badge ${comOn ? "approved" : "draft"}">${comOn ? "ON" : "OFF"}</span>
+      </div>
+      ${!insOn ? `<div style="font-size:var(--fs-xs);color:var(--muted);">💤 Métricas en espera de activación (<code>ENABLE_INSIGHTS_SYNC = true</code> en ScriptProperties).</div>` : ""}
+      <button class="btn" data-action="dry-run-comment" type="button" style="border-color:rgba(167,139,250,0.55);color:#ddd6fe;">▶️ Probar en seco (1 comentario)</button>
+      <div id="dryRunResultBox" style="display:none;padding:10px;border-radius:10px;background:#120f0d;border:1px solid var(--border);font-size:var(--fs-xs);"></div>
     </div>
     <div class="kpi-card">
       <small>💬 Clics a WhatsApp por publicación</small>
@@ -1081,7 +1109,17 @@ function renderFullCard(post) {
       ${post.nota_error ? `<div style="font-size:var(--fs-xs);color:#fecaca;background:rgba(0,0,0,0.3);padding:6px 8px;border-radius:8px;word-break:break-word;"><strong>Motivo:</strong> ${escapeHtml(post.nota_error)}</div>` : ""}
     </div>` : "";
 
+  const hasPostInsights = (Number(post.alcance) || 0) > 0 || (Number(post.interacciones) || 0) > 0 || (Number(post.guardados) || 0) > 0;
+  const insightsStripHtml = isPublished
+    ? (hasPostInsights
+      ? `<div style="padding:7px 12px;background:#12171d;border-top:1px solid var(--border);font-size:var(--fs-xs);color:#93c5fd;font-weight:700;">👁️ ${Number(post.alcance)} alcance · ❤️ ${Number(post.interacciones)} interacc. · 🔖 ${Number(post.guardados)} guardados</div>`
+      : (!featureFlags.insightsSyncEnabled
+        ? `<div style="padding:6px 12px;background:#15110e;border-top:1px solid var(--border);font-size:var(--fs-xs);color:var(--muted);">💤 Métricas en espera de activación</div>`
+        : ""))
+    : "";
+
   const shareGroupsHtml = isPublished ? `
+    ${insightsStripHtml}
     <div style="padding:8px 12px;background:#161310;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
       <span style="font-size:var(--fs-xs);color:#93c5fd;font-weight:700;">${post.fecha_pub_real ? `✅ Publicado el ${escapeHtml(post.fecha_pub_real)}` : "🚀 Comparte en grupos locales:"}</span>
       <button class="btn" type="button" data-action="share-fb-groups" style="border-color:#1877f2;color:#93c5fd;">Compartir FB</button>
@@ -1522,6 +1560,38 @@ document.getElementById("feed").addEventListener("click", async (e) => {
         render();
       }
       showToast("💡 Banco de ideas reactivado", { type: "success" });
+    });
+    return;
+  }
+
+  // Pulso: Probar en seco (1 comentario)
+  const dryRunBtn = e.target.closest("[data-action='dry-run-comment']");
+  if (dryRunBtn) {
+    if (!syncCfg.url) { showToast("Conecta Google Sheets primero", { type: "warn" }); return; }
+    await withLoading(dryRunBtn, async () => {
+      const d = await pushToSheets({ action: "dryRunComment" });
+      const box = document.getElementById("dryRunResultBox");
+      if (d && d.disabled) {
+        if (box) {
+          box.style.display = "block";
+          box.innerHTML = `<span style="color:#fcd34d;">💤 ${escapeHtml(d.error || "Auto-respuesta está en OFF.")}</span>`;
+        }
+        showToast("Auto-respuesta está en OFF (ENABLE_AUTO_COMMENTS=false)", { type: "warn" });
+      } else if (d && d.ok && d.sinPendientes) {
+        if (box) {
+          box.style.display = "block";
+          box.innerHTML = `<span style="color:#86efac;">✅ ${escapeHtml(d.mensaje)}</span>`;
+        }
+        showToast("Sin comentarios nuevos pendientes", { type: "success" });
+      } else if (d && d.ok && d.dryRun) {
+        if (box) {
+          box.style.display = "block";
+          box.innerHTML = `<div><strong>[${escapeHtml(d.red)} · ID ${escapeHtml(d.postId)}] ${escapeHtml(d.autor)}:</strong> "${escapeHtml(d.comentario)}"</div><div style="margin-top:6px;color:#86efac;"><strong>Respuesta propuesta (NO enviada):</strong> ${escapeHtml(d.respuestaPropuesta)}</div>`;
+        }
+        showToast("▶️ Simulación lista (no se publicó en Meta)", { type: "success" });
+      } else {
+        showToast("⚠️ " + ((d && d.error) || "Error probando comentarios"), { type: "error" });
+      }
     });
     return;
   }
@@ -2482,7 +2552,7 @@ async function runHealthCheck() {
       <div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
     </div>`;
 
-  box.innerHTML = row("⏳", "Comprobando v11…", "Verificando app.js, CSP estricta, Service Worker, alertas y Google Apps Script…");
+  box.innerHTML = row("⏳", "Comprobando v12…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
 
   let swOk = true;
   try {
@@ -2493,19 +2563,23 @@ async function runHealthCheck() {
   } catch { swOk = false; }
 
   const appHtml = swOk
-    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v11.")
+    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.")
     : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Toca 'Recarga limpia' si notas algo desactualizado.");
 
   let serverHtml = "";
   let alertsHtml = "";
+  let flagsHtml = "";
   let sheetHtml = "";
   if (!syncCfg.url) {
     serverHtml = row("❌", "Falta conectar Google Sheets", "Configura tu Web App URL + PIN en ⚙️.");
     alertsHtml = row("⚠️", "Alertas automáticas (sin conexión)", "Conecta Sheets para ver estado de Telegram y Correo.");
+    flagsHtml = row("💤", "Crecimiento orgánico (modo local)", "Métricas Meta: OFF · Auto-respuesta comentarios: OFF");
     sheetHtml = row("⚠️", "Modo local", "Mostrando datos locales hasta conectar Sheets.");
   } else {
     const hc = await pushToSheets({ action: "healthCheck" });
     if (hc && hc.ok && Number(hc.bridgeVersion) >= 4) {
+      featureFlags.insightsSyncEnabled = !!hc.insightsSyncEnabled;
+      featureFlags.autoCommentsEnabled = !!hc.autoCommentsEnabled;
       serverHtml = row(
         "✅",
         `Servidor Google conectado (v${hc.bridgeVersion})`,
@@ -2517,6 +2591,11 @@ async function runHealthCheck() {
         `Alertas automáticas: ${hc.alertsMode || (hc.telegramConfigured ? "Telegram" : "Correo automático")}`,
         `Telegram: ${hc.telegramConfigured ? "✅ activo" : "opcional"} · Correo respaldo: ${hc.emailAlertsEnabled ? "✅ activo" : "pendiente"} · Archivado 45d listo`
       );
+      flagsHtml = row(
+        (hc.insightsSyncEnabled || hc.autoCommentsEnabled) ? "🌱" : "💤",
+        `Métricas Meta: ${hc.insightsSyncEnabled ? "ON" : "OFF"} · Auto-respuesta comentarios: ${hc.autoCommentsEnabled ? "ON" : "OFF"}`,
+        "Controlados desde ScriptProperties (ENABLE_INSIGHTS_SYNC y ENABLE_AUTO_COMMENTS)."
+      );
       sheetHtml = row(
         "✅",
         "Calendario_LaParrilla conectado",
@@ -2525,10 +2604,11 @@ async function runHealthCheck() {
     } else {
       serverHtml = row("❌", "Error en servidor Google", (hc && hc.error) || "Revisa conexión o PIN.");
       alertsHtml = row("⚠️", "Alertas no verificadas", "Revisa la conexión con Apps Script.");
+      flagsHtml = row("💤", "Banderas no verificadas", "Métricas Meta: OFF · Auto-respuesta comentarios: OFF");
       sheetHtml = row("⚠️", "No se pudo verificar Sheets", "Comprueba tu conexión a internet.");
     }
   }
-  box.innerHTML = appHtml + serverHtml + alertsHtml + sheetHtml;
+  box.innerHTML = appHtml + serverHtml + alertsHtml + flagsHtml + sheetHtml;
 }
 
 document.getElementById("closeHealthBtn").addEventListener("click", () => document.getElementById("healthModal").classList.remove("open"));
