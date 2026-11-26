@@ -657,7 +657,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const APP_VERSION = "v7";
+    const APP_VERSION = "v8";
     const WA_BASE = "https://wa.me/523330723340?text=";
     const INITIAL_GALLERY = [
       { id: "1", cat: "Burritos", desc: "Burrito de camarón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549726/dwwndaog2uqtspzguc8x.jpg" },
@@ -673,7 +673,13 @@
       { id: "11", cat: "Botanas", desc: "Boneless Búfalo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg" },
       { id: "12", cat: "Hamburguesas", desc: "Pollo Crispy + Papas", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549740/hthkfxn3sojgfqjshyjp.jpg" },
       { id: "13", cat: "Tacos", desc: "Tacos al Carbón HD", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg" },
-      { id: "14", cat: "Menu", desc: "Menú Oficial Completo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549742/tdfyo1hnfrdrffezkjhx.jpg" }
+      { id: "14", cat: "Menu", desc: "Menú Oficial Completo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549742/tdfyo1hnfrdrffezkjhx.jpg" },
+      { id: "15", cat: "Canva", desc: "Canva: Jueves Burgers al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714992/laparrilla_canva/canva_jueves_burgers_carbon.jpg" },
+      { id: "16", cat: "Canva", desc: "Canva: Miércoles de Boneless", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg" },
+      { id: "17", cat: "Canva", desc: "Canva: Sábado de Parrillada", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg" },
+      { id: "18", cat: "Canva", desc: "Canva: Plantilla Historia 9:16", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" },
+      { id: "19", cat: "Canva", desc: "Canva: Menú Mié–Jue", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715003/laparrilla_canva/canva_menu_mie_jue.jpg" },
+      { id: "20", cat: "Canva", desc: "Canva: Menú Vie–Dom", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715005/laparrilla_canva/canva_menu_vie_dom.jpg" }
     ];
 
     const INITIAL_POSTS = [
@@ -791,8 +797,27 @@
     let galleryCropMode = "ORIG";
     let galleryCatFilter = "Todas";
 
+    function normalizeRed(red) {
+      const r = String(red || "AMBAS").trim().toUpperCase();
+      if (r === "FACEBOOK" || r === "FB") return "FB";
+      if (r === "INSTAGRAM" || r === "IG") return "IG";
+      return "AMBAS";
+    }
+    function getTodayMx() {
+      try {
+        return new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Mexico_City",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).format(new Date());
+      } catch {
+        const d = new Date(Date.now() - 6 * 3600 * 1000);
+        return d.toISOString().slice(0, 10);
+      }
+    }
     function getDefaultDest(formato, red) {
-      const r = String(red || "AMBAS").toUpperCase();
+      const r = normalizeRed(red);
       const isP = String(formato || "POST").toUpperCase() === "POST";
       const isS = String(formato || "").toUpperCase() === "STORY";
       return {
@@ -898,8 +923,9 @@
       if (!String(post.foto || "").startsWith("https://")) {
         issues.push("Falta URL_Media válida (https://) para poder aprobar.");
       }
-      if (post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL") {
-        issues.push(`Publicación parcial (${post.estado}): falta publicar en ${post.estado === "ERROR_IG" ? "Instagram" : "Facebook"}.`);
+      if (post.estado === "ERROR" || post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL") {
+        const motivo = post.nota_error ? `: ${post.nota_error}` : (post.estado === "ERROR_IG" ? ": falló Instagram" : (post.estado === "ERROR_FB" ? ": falló Facebook" : ""));
+        issues.push(`Error de publicación (${post.estado})${motivo}`);
       }
       return issues;
     }
@@ -926,7 +952,7 @@
 
     function resolveEffectiveEstado(r) {
       const est = String(r.Estado || "BORRADOR").toUpperCase();
-      const red = String(r.Red || "AMBAS").toUpperCase();
+      const red = normalizeRed(r.Red || "AMBAS");
       const hasFb = !!String(r.ID_FB || "").trim();
       const hasIg = !!String(r.ID_IG || "").trim();
       if (est === "PUBLICADO" && red === "AMBAS") {
@@ -967,13 +993,15 @@
                 fecha: fechaClean,
                 dia: getDiaFromFecha(fechaClean),
                 hora: formatHora(r.Hora),
-                red: (r.Red || "AMBAS").toUpperCase(),
+                red: normalizeRed(r.Red || "AMBAS"),
                 formato: (r.Formato || "POST").toUpperCase(),
                 estado: resolveEffectiveEstado(r),
                 copy: r.Copy_Final || "",
                 foto: r.URL_Media || "",
                 id_fb: r.ID_FB || "",
-                id_ig: r.ID_IG || ""
+                id_ig: r.ID_IG || "",
+                nota_error: r.Nota_Error || "",
+                fecha_pub_real: r.Fecha_Publicacion_Real || ""
               };
             });
         }
@@ -999,7 +1027,7 @@
     }
 
     async function pushToSheets(payload) {
-      if (!syncCfg.url) return false;
+      if (!syncCfg.url) return { ok: false, offline: true };
       try {
         const res = await fetch(syncCfg.url, {
           method: "POST",
@@ -1007,9 +1035,9 @@
           body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, ...payload })
         });
         const data = await res.json();
-        return !!data.ok;
+        return data && typeof data === "object" ? data : { ok: false, error: "Respuesta inválida del servidor" };
       } catch {
-        return false;
+        return { ok: false, error: "Error de red al conectar con Apps Script" };
       }
     }
 
@@ -1093,7 +1121,7 @@
               <strong>ID ${escapeHtml(m.ID_Publicacion)} · ${escapeHtml(m.Red)} (${escapeHtml(m.Dia_Semana)} ${escapeHtml(m.Hora_Publicacion)})</strong><br>
               <span style="color:var(--muted);">Alcance: ${escapeHtml(m.Alcance || "0")} · Interacciones: ${escapeHtml(m.Interacciones || "0")} · Clics: ${escapeHtml(m.Clics_o_Mensajes || "0")}</span>
             </div>`).join("")
-        : `<p style="margin:0;font-size:12.5px;color:var(--muted);">Aún no hay cortes en <code>Metricas_y_Horarios</code>. El lunes ejecuta <strong>Run once</strong> en el Escenario 4 de Make y aparecerán aquí automáticamente.</p>`;
+        : `<p style="margin:0;font-size:12.5px;color:var(--muted);">Aún no hay cortes en <code>Metricas_y_Horarios</code>. Conforme se publiquen tus posts, aquí verás el histórico de alcance e interacciones.</p>`;
 
       return `
         <div class="kpi-grid">
@@ -1103,8 +1131,9 @@
           <div class="kpi-card"><small>Alcance / Interacciones</small><strong>${totalReach} / ${totalInt}</strong></div>
         </div>
         <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-          <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de WhatsApp y Avisos</h3>
-          <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque tu enlace de pedidos, grupos de Facebook y alertas por Telegram.</p>
+          <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de Meta, WhatsApp y Avisos</h3>
+          <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque tu motor directo FB/IG, tu enlace de pedidos y alertas por Telegram.</p>
+          <button class="btn" data-action="test-meta" style="border-color:var(--accent);color:#fdba74;">🔗 Probar conexión Meta FB/IG (solo lectura)</button>
           <a class="btn btn-wa" href="${waTestUrl}" target="_blank" rel="noopener">💬 Abrir enlace de prueba en WhatsApp</a>
           <a class="btn" href="https://www.facebook.com/La-Parrilla-106299351752487" target="_blank" rel="noopener" style="border-color:#1877f2;color:#93c5fd;">🚀 Abrir Página FB para compartir en grupos de Ixtlahuacán</a>
           <button class="btn" data-action="test-telegram" style="border-color:#38bdf8;color:#7dd3fc;">📲 Probar aviso por Telegram</button>
@@ -1211,7 +1240,7 @@
         const mode = previewMode[post.id] || (post.formato === "STORY" ? "STORY" : "IG");
         const isApproved = post.estado === "APROBADO";
         const isPublished = post.estado === "PUBLICADO";
-        const isError = post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL";
+        const isError = post.estado === "ERROR" || post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL";
         const isEditing = !!editorOpen[post.id];
         const issues = checkGuardrails(post);
         const badgeCls = isError ? "error" : (isPublished ? "published" : (isApproved ? "approved" : "draft"));
@@ -1228,15 +1257,19 @@
           </div>` : "";
 
         const shareGroupsHtml = isPublished ? `
-          <div style="padding:10px 14px;background:#161310;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-            <span style="font-size:12px;color:#93c5fd;font-weight:700;">🚀 Multiplica alcance en Ixtlahuacán:</span>
+          <div style="padding:10px 14px;background:#161310;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:#93c5fd;font-weight:700;">${post.fecha_pub_real ? `✅ Publicado el ${escapeHtml(post.fecha_pub_real)}` : "🚀 Multiplica alcance en Ixtlahuacán:"}</span>
             <button class="btn" data-action="share-fb-groups" style="border-color:#1877f2;color:#93c5fd;">Compartir en grupos</button>
           </div>` : "";
 
+        const retryLabel = post.estado === "ERROR_FB" ? "solo FB" : (post.estado === "ERROR_IG" ? "solo IG" : "publicación");
         const retryErrorHtml = isError ? `
-          <div style="padding:10px 14px;background:rgba(239,68,68,0.12);border-top:1px solid rgba(239,68,68,0.4);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-            <span style="font-size:12px;color:#fca5a5;font-weight:700;">⚠️ Publicación incompleta (${post.estado})</span>
-            <button class="btn" data-action="retry-missing" style="border-color:#ef4444;color:#fecaca;">🔄 Reintentar ${post.estado === "ERROR_FB" ? "solo FB" : "solo IG"}</button>
+          <div style="padding:10px 14px;background:rgba(239,68,68,0.12);border-top:1px solid rgba(239,68,68,0.4);display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <span style="font-size:12px;color:#fca5a5;font-weight:800;">⚠️ Estado: ${escapeHtml(post.estado)}</span>
+              <button class="btn" data-action="retry-missing" style="border-color:#ef4444;color:#fecaca;">🔄 Reintentar ${retryLabel}</button>
+            </div>
+            ${post.nota_error ? `<div style="font-size:11.5px;color:#fecaca;background:rgba(0,0,0,0.28);padding:7px 9px;border-radius:8px;word-break:break-word;"><strong>Motivo:</strong> ${escapeHtml(post.nota_error)}</div>` : ""}
           </div>` : "";
 
         const aiVars = aiVariantsByPost[post.id] || [];
@@ -1378,6 +1411,19 @@
         render();
         return;
       }
+      const testMetaBtn = e.target.closest("[data-action='test-meta']");
+      if (testMetaBtn) {
+        if (!syncCfg.url) { showToast("Conecta Google Sheets primero"); return; }
+        showToast("🔗 Verificando conexión Meta (solo lectura)...");
+        const d = await pushToSheets({ action: "testMeta" });
+        if (d.ok) {
+          showToast(`✅ Meta OK: ${d.pagina?.name || "FB"} · @${d.instagram?.username || "IG"}`);
+        } else {
+          showToast("⚠️ " + ((d.errores && d.errores[0]) || d.error || "Faltan credenciales Meta en Apps Script"));
+        }
+        return;
+      }
+
       const testTgBtn = e.target.closest("[data-action='test-telegram']");
       if (testTgBtn) {
         if (!syncCfg.url) { showToast("Conecta Google Sheets primero"); return; }
@@ -1428,21 +1474,28 @@
           }
           const createdIds = [];
           let syncedAll = true;
+          let lastErr = "";
           for (const grp of groups) {
-            const nextId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-            const newPost = {
-              id: nextId, fecha: sug.fecha, dia: sug.dia, hora: sug.hora,
-              red: grp.red, formato: grp.formato, estado, copy: sug.copy, foto: sug.foto
+            const localId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+            const payload = {
+              action: "create", fecha: sug.fecha, hora: sug.hora,
+              red: grp.red, formato: grp.formato, estado, copy: sug.copy, foto: sug.foto,
+              idea: sug.titulo, titulo: sug.titulo
             };
-            posts.push(newPost);
-            createdIds.push(`${nextId} (${grp.formato}/${grp.red})`);
-            const ok = await pushToSheets({ action: "create", ...newPost, idea: sug.titulo, titulo: sug.titulo });
-            if (!ok) syncedAll = false;
+            const res = await pushToSheets(payload);
+            const finalId = (res && res.ok && res.id) ? Number(res.id) : localId;
+            if (!res || !res.ok) { syncedAll = false; if (res && res.error) lastErr = res.error; }
+            posts.push({
+              id: finalId, fecha: sug.fecha, dia: sug.dia, hora: sug.hora,
+              red: grp.red, formato: grp.formato, estado, copy: sug.copy, foto: sug.foto,
+              nota_error: "", fecha_pub_real: ""
+            });
+            createdIds.push(`${finalId} (${grp.formato}/${grp.red})`);
           }
           suggestions.splice(idx, 1);
           saveLocal();
           render();
-          showToast(syncedAll && syncCfg.url ? `☁️ Creadas en Sheets: ${createdIds.join(" + ")}` : `Programada(s): ${createdIds.join(" + ")}`);
+          showToast(syncedAll && syncCfg.url ? `☁️ Creadas en Sheets: ${createdIds.join(" + ")}` : (lastErr ? `⚠️ ${lastErr}` : `Programada(s): ${createdIds.join(" + ")}`));
         } else if (action === "decline-sug") {
           suggestions.splice(idx, 1);
           saveLocal();
@@ -1500,21 +1553,23 @@
       const action = actionBtn.dataset.action;
 
       if (action === "retry-missing") {
-        const missingRed = post.estado === "ERROR_FB" ? "FB" : "IG";
-        const ok = await pushToSheets({ action: "retryNetwork", id, missingRed });
-        if (ok) {
+        const missingRed = post.estado === "ERROR_FB" ? "FB" : (post.estado === "ERROR_IG" ? "IG" : normalizeRed(post.red || "AMBAS"));
+        const res = await pushToSheets({ action: "retryNetwork", id, missingRed });
+        if (res && res.ok) {
           post.red = missingRed;
           post.estado = "APROBADO";
+          post.nota_error = "";
           saveLocal();
           render();
-          showToast(`🔄 ID ${id} listo para reintentar solo en ${missingRed}`);
+          showToast(`🔄 ID ${id} listo para reintentar en ${missingRed}`);
         } else {
-          showToast("No se pudo marcar reintento en Sheets");
+          showToast("⚠️ " + ((res && res.error) || "No se pudo marcar reintento en Sheets"));
         }
         return;
       }
 
       if (action === "toggle-approve") {
+        const prevEstado = post.estado;
         const nextEstado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
         if (nextEstado === "APROBADO") {
           const v = await validateBeforeApprove(post);
@@ -1523,14 +1578,21 @@
         post.estado = nextEstado;
         saveLocal();
         render();
-        const synced = await pushToSheets({ action: "updatePost", id, estado: post.estado, copy: post.copy, foto: post.foto });
-        showToast(synced ? `☁️ ID ${id} → ${post.estado} en Sheets` : `ID ${id} → ${post.estado}`);
+        const res = await pushToSheets({ action: "updatePost", id, estado: post.estado, copy: post.copy, foto: post.foto });
+        if (syncCfg.url && (!res || !res.ok)) {
+          post.estado = prevEstado;
+          saveLocal();
+          render();
+          showToast("⛔ " + ((res && res.error) || "No se pudo actualizar en Sheets"));
+        } else {
+          showToast(res && res.ok ? `☁️ ID ${id} → ${post.estado} en Sheets` : `ID ${id} → ${post.estado}`);
+        }
       } else if (action === "mark-published") {
         post.estado = post.estado === "PUBLICADO" ? "BORRADOR" : "PUBLICADO";
         saveLocal();
         render();
-        const synced = await pushToSheets({ action: "updatePost", id, estado: post.estado });
-        showToast(synced ? `☁️ Historia ID ${id} → ${post.estado} en Sheets` : `Historia ID ${id} → ${post.estado}`);
+        const res = await pushToSheets({ action: "updatePost", id, estado: post.estado });
+        showToast(res && res.ok ? `☁️ Historia ID ${id} → ${post.estado} en Sheets` : `Historia ID ${id} → ${post.estado}`);
       } else if (action === "story-kit") {
         try { await navigator.clipboard.writeText(post.copy); } catch {}
         const a = document.createElement("a");
@@ -1548,27 +1610,34 @@
         if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
         post.formato = groups[0].formato;
         post.red = groups[0].red;
-        let synced = await pushToSheets({ action: "updatePost", id, copy: post.copy, fecha: post.fecha, hora: post.hora, formato: post.formato, red: post.red });
+        const r1 = await pushToSheets({ action: "updatePost", id, copy: post.copy, fecha: post.fecha, hora: post.hora, formato: post.formato, red: post.red });
+        let synced = !!(r1 && r1.ok);
+        let errMsg = (!synced && r1 && r1.error) ? r1.error : "";
         if (groups.length > 1) {
-          const extraId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-          const extraPost = {
-            id: extraId, fecha: post.fecha, dia: post.dia, hora: post.hora,
-            red: groups[1].red, formato: groups[1].formato, estado: post.estado, copy: post.copy, foto: post.foto
-          };
-          posts.push(extraPost);
-          const ok2 = await pushToSheets({ action: "create", ...extraPost, idea: `Copia ${groups[1].formato} de ID ${id}` });
-          synced = synced && ok2;
+          const localExtraId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+          const r2 = await pushToSheets({
+            action: "create", fecha: post.fecha, hora: post.hora,
+            red: groups[1].red, formato: groups[1].formato, estado: post.estado, copy: post.copy, foto: post.foto,
+            idea: `Copia ${groups[1].formato} de ID ${id}`
+          });
+          const finalExtraId = (r2 && r2.ok && r2.id) ? Number(r2.id) : localExtraId;
+          posts.push({
+            id: finalExtraId, fecha: post.fecha, dia: post.dia, hora: post.hora,
+            red: groups[1].red, formato: groups[1].formato, estado: post.estado, copy: post.copy, foto: post.foto,
+            nota_error: "", fecha_pub_real: ""
+          });
+          if (!r2 || !r2.ok) { synced = false; if (r2 && r2.error) errMsg = r2.error; }
         }
         saveLocal();
         render();
-        showToast(synced && syncCfg.url ? `☁️ Guardado en Sheets (${groups.map(g => g.formato + "/" + g.red).join(" + ")})` : "Cambios guardados localmente");
+        showToast(synced && syncCfg.url ? `☁️ Guardado en Sheets (${groups.map(g => g.formato + "/" + g.red).join(" + ")})` : (errMsg ? `⚠️ ${errMsg}` : "Cambios guardados localmente"));
       } else if (action === "cancel-post") {
         if (!confirm(`¿Cancelar la publicación ID ${id}?`)) return;
         post.estado = "CANCELADO";
         saveLocal();
         render();
-        const synced = await pushToSheets({ action: "updatePost", id, estado: "CANCELADO" });
-        showToast(synced ? `☁️ ID ${id} cancelada en Sheets` : `ID ${id} cancelada`);
+        const res = await pushToSheets({ action: "updatePost", id, estado: "CANCELADO" });
+        showToast(res && res.ok ? `☁️ ID ${id} cancelada en Sheets` : `ID ${id} cancelada`);
       } else if (action === "share-fb-groups") {
         try { await navigator.clipboard.writeText(post.copy); } catch {}
         window.open("https://www.facebook.com/La-Parrilla-106299351752487", "_blank", "noopener");
@@ -1660,13 +1729,12 @@
       saveLocal();
       document.getElementById("galleryModal").classList.remove("open");
       render();
-      const synced = await pushToSheets({ action: "updatePost", id: post.id, foto: post.foto });
-      showToast(synced ? `☁️ Foto actualizada en Sheets (ID ${post.id})` : `Foto actualizada (ID ${post.id})`);
+      const res = await pushToSheets({ action: "updatePost", id: post.id, foto: post.foto });
+      showToast(res && res.ok ? `☁️ Foto actualizada en Sheets (ID ${post.id})` : `Foto actualizada (ID ${post.id})`);
     });
 
     document.getElementById("newPostBtn").addEventListener("click", () => {
-      const d = new Date();
-      document.getElementById("newPostFecha").value = d.toISOString().slice(0, 10);
+      document.getElementById("newPostFecha").value = getTodayMx();
       document.getElementById("newPostHora").value = "18:00";
       document.getElementById("newPostCopy").value = "";
       document.getElementById("newPostThumb").src = newPostPhoto;
@@ -1759,19 +1827,27 @@
       }
       const dia = getDiaFromFecha(fecha);
       let syncedAll = true;
+      let lastErr = "";
       const ids = [];
       for (const grp of groups) {
-        const nextId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-        const np = { id: nextId, fecha, dia, hora, red: grp.red, formato: grp.formato, estado: newPostEstado, copy, foto: newPostPhoto };
-        posts.push(np);
-        ids.push(nextId);
-        const ok = await pushToSheets({ action: "create", ...np, idea: "Creada desde La Parrilla Studio" });
-        if (!ok) syncedAll = false;
+        const localId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+        const res = await pushToSheets({
+          action: "create", fecha, hora, red: grp.red, formato: grp.formato,
+          estado: newPostEstado, copy, foto: newPostPhoto,
+          idea: "Creada desde La Parrilla Studio"
+        });
+        const finalId = (res && res.ok && res.id) ? Number(res.id) : localId;
+        if (!res || !res.ok) { syncedAll = false; if (res && res.error) lastErr = res.error; }
+        posts.push({
+          id: finalId, fecha, dia, hora, red: grp.red, formato: grp.formato,
+          estado: newPostEstado, copy, foto: newPostPhoto, nota_error: "", fecha_pub_real: ""
+        });
+        ids.push(finalId);
       }
       saveLocal();
       document.getElementById("newPostModal").classList.remove("open");
       render();
-      showToast(syncedAll && syncCfg.url ? `☁️ Publicación creada en Sheets (ID ${ids.join(", ")})` : `Publicación creada (ID ${ids.join(", ")})`);
+      showToast(syncedAll && syncCfg.url ? `☁️ Publicación creada en Sheets (ID ${ids.join(", ")})` : (lastErr ? `⚠️ ${lastErr}` : `Publicación creada (ID ${ids.join(", ")})`));
     });
 
     document.getElementById("camUploadInput").addEventListener("change", async (e) => {
@@ -1838,7 +1914,9 @@
           const hc = await res.json();
           if (hc && hc.ok && Number(hc.bridgeVersion) >= 2) {
             const extras = [
-              `IA Gemini: ${hc.geminiConfigured ? "✅" : "⚠️ falta GEMINI_API_KEY"}`,
+              `Motor Meta FB/IG: ${hc.metaConfigured ? "✅" : "⚠️ faltan credenciales Meta"}`,
+              `2 celulares (Lock): ${hc.lockServiceEnabled ? "✅" : "⚠️"}`,
+              `IA Gemini: ${hc.geminiConfigured ? "✅" : "⚠️ opcional"}`,
               `Telegram: ${hc.telegramConfigured ? "✅" : "⚠️ opcional"}`
             ].join(" · ");
             serverHtml = row("✅", `Servidor Google conectado (v${hc.bridgeVersion})`, `Validación imágenes ${hc.imageValidationEnabled ? "✅" : "❌"} · ${extras}`);

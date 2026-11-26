@@ -1,2 +1,5 @@
 *.gs
 apps_script_bridge.gs
+GEMINI.md
+.clasp.json
+.clasprc.json
