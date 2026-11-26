@@ -1337,17 +1337,18 @@
         </details>
 
         <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">
             <span class="label-xs" style="margin:0;">📝 Copy largo (Post 4:5)</span>
             <span class="label-xs" id="newPostCopyCounter" style="margin:0;">0 · corte en 125</span>
           </div>
-          <div class="ai-row">
-            <button type="button" class="ai-chip" data-new-ai="antojo">✨ Antojo</button>
-            <button type="button" class="ai-chip" data-new-ai="divertido">✨ Divertido</button>
-            <button type="button" class="ai-chip" data-new-ai="familiar">✨ Familiar</button>
+          <div class="ai-row" style="margin-bottom:6px;">
+            <button type="button" class="btn-primary" id="newQuickAiBtn" style="min-height:40px;padding:0 14px;font-size:var(--fs-xs);flex-shrink:0;">✨ Redactar con IA</button>
+            <button type="button" class="ai-chip" data-new-ai="antojo">🔥 Antojo</button>
+            <button type="button" class="ai-chip" data-new-ai="divertido">😂 Divertido</button>
+            <button type="button" class="ai-chip" data-new-ai="familiar">👨‍👩‍👧 Familiar</button>
           </div>
           <div id="newPostAiVariants" style="display:none;flex-direction:column;gap:6px;margin-top:6px;"></div>
-          <textarea id="newPostCopy" style="margin-top:6px;" placeholder="Escribe una idea o el copy completo (sin $, precio, pesitos, 2x1 ni promo de)…"></textarea>
+          <textarea id="newPostCopy" style="margin-top:4px;" placeholder="Escribe una idea breve (ej. Corte ribeye hoy por lluvia) y toca ✨ Redactar con IA…"></textarea>
           <div class="highlight-preview" id="newPostRuleWarn" style="margin-top:6px;"></div>
         </div>
 
@@ -1406,17 +1407,19 @@
           </div>
         </div>
         <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">
             <span class="label-xs" style="margin:0;">📝 Copy largo (Post)</span>
             <span class="label-xs" id="editCopyCounter" style="margin:0;">0 · corte en 125</span>
           </div>
-          <div class="ai-row">
-            <button type="button" class="ai-chip" data-edit-ai="antojo">✨ Antojo</button>
-            <button type="button" class="ai-chip" data-edit-ai="divertido">✨ Divertido</button>
-            <button type="button" class="ai-chip" data-edit-ai="familiar">✨ Familiar</button>
+          <div class="ai-row" style="margin-bottom:6px;">
+            <button type="button" class="btn-primary" id="editQuickAiBtn" style="min-height:40px;padding:0 14px;font-size:var(--fs-xs);flex-shrink:0;">✨ Redactar con IA</button>
+            <button type="button" class="ai-chip" id="editInsertWaBtn" style="border-color:rgba(34,197,94,0.55);color:#86efac;">🔗 Link WA</button>
+            <button type="button" class="ai-chip" data-edit-ai="antojo">🔥 Antojo</button>
+            <button type="button" class="ai-chip" data-edit-ai="divertido">😂 Divertido</button>
+            <button type="button" class="ai-chip" data-edit-ai="familiar">👨‍👩‍👧 Familiar</button>
           </div>
           <div id="editAiVariants" style="display:none;flex-direction:column;gap:6px;margin-top:6px;"></div>
-          <textarea id="editCopy" style="margin-top:6px;"></textarea>
+          <textarea id="editCopy" style="margin-top:4px;"></textarea>
           <div class="highlight-preview" id="editRuleWarn" style="margin-top:6px;"></div>
         </div>
         <div class="story-copy-box">
@@ -1489,7 +1492,7 @@
           <span class="label-xs">Upload Preset de Cloudinary (para subir desde cámara)</span>
           <input type="text" id="cldPresetInput" placeholder="ej. laparrilla_unsigned" />
         </div>
-        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v10)</button>
+        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v11)</button>
       </div>
       <div class="modal-footer">
         <button class="btn btn-decline" id="disconnectSyncBtn" type="button" style="flex:0 0 auto;">Desconectar</button>
@@ -1498,12 +1501,12 @@
     </div>
   </div>
 
-  <!-- Modal: 🩺 Diagnóstico del Sistema (v10) -->
+  <!-- Modal: 🩺 Diagnóstico del Sistema (v11) -->
   <div class="modal-backdrop" id="healthModal">
     <div class="modal-sheet">
       <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>🩺 Diagnóstico (v10)</h2>
+        <h2>🩺 Diagnóstico (v11)</h2>
         <button class="btn" id="closeHealthBtn" type="button">✖</button>
       </div>
       <div class="modal-body">

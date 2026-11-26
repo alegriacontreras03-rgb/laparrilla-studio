@@ -1,6 +1,6 @@
 "use strict";
 
-const APP_VERSION = "v10";
+const APP_VERSION = "v11";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
 const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
 const AVATAR_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg";
@@ -475,6 +475,13 @@ function formatHora(val) {
   return "18:00";
 }
 
+function buildTrackableWaUrl(postId) {
+  if (syncCfg.url && postId) {
+    return `${syncCfg.url}?wa=${encodeURIComponent(String(postId))}`;
+  }
+  return WA_BASE + encodeURIComponent("Hola La Parrilla, vi su publicación y quiero hacer un pedido 🔥");
+}
+
 function mapSheetPostRow(r) {
   const fechaClean = String(r.Fecha || "").slice(0, 10);
   const copyLong = String(r.Copy_Final || "");
@@ -495,7 +502,8 @@ function mapSheetPostRow(r) {
     nota_error: String(r.Nota_Error || ""),
     fecha_pub_real: String(r.Fecha_Publicacion_Real || ""),
     version: Math.max(1, Number(r.Version) || 1),
-    editado_por: String(r.Editado_Por || "")
+    editado_por: String(r.Editado_Por || ""),
+    clics_wa: Number(r.Clics_WA) || 0
   };
 }
 
@@ -830,6 +838,8 @@ function renderPulse() {
   const drafts = active.filter(p => p.estado === "BORRADOR").length;
   const published = active.filter(p => p.estado === "PUBLICADO").length;
   const errs = active.filter(p => isErrorEstado(p.estado)).length;
+  const totalWaClicks = active.reduce((acc, p) => acc + (Number(p.clics_wa) || 0), 0);
+  const topWaPosts = active.filter(p => (Number(p.clics_wa) || 0) > 0).sort((a, b) => b.clics_wa - a.clics_wa).slice(0, 4);
   const totalReach = metrics.reduce((acc, m) => acc + (Number(m.Alcance) || 0), 0);
   const totalInt = metrics.reduce((acc, m) => acc + (Number(m.Interacciones) || 0), 0);
   const waTestUrl = WA_BASE + encodeURIComponent("Hola La Parrilla, vi su publicación y quiero hacer un pedido para hoy 🔥");
@@ -846,10 +856,22 @@ function renderPulse() {
       <div class="kpi-card"><small>Por aprobar</small><strong style="color:var(--amber);">${drafts}</strong></div>
       <div class="kpi-card"><small>Aprobadas listas</small><strong style="color:var(--green);">${approved}</strong></div>
       <div class="kpi-card"><small>Publicadas</small><strong style="color:var(--blue);">${published}</strong></div>
+      <div class="kpi-card"><small>💬 Clics WA rastreados</small><strong style="color:#86efac;">${totalWaClicks}</strong></div>
+    </div>
+    <div class="kpi-grid">
       <div class="kpi-card"><small>Errores</small><strong style="color:${errs ? "var(--red)" : "#86efac"};">${errs}</strong></div>
+      <div class="kpi-card"><small>Alcance / Interacc.</small><strong>${totalReach} / ${totalInt}</strong></div>
     </div>
     <div class="kpi-card">
-      <small>Alcance semanal · Total ${totalReach} alcance / ${totalInt} interacciones</small>
+      <small>💬 Clics a WhatsApp por publicación</small>
+      ${topWaPosts.length ? topWaPosts.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:var(--fs-xs);">
+          <span><strong>ID ${escapeHtml(p.id)}</strong> · ${escapeHtml(formatReadableDate(p.fecha, p.hora))}</span>
+          <span style="color:#86efac;font-weight:800;">💬 ${p.clics_wa} clics WA</span>
+        </div>`).join("") : `<p style="margin:6px 0 0;font-size:var(--fs-xs);color:var(--muted);">Aún no hay clics registrados. Usa el botón <strong>🔗 Link WA</strong> en tus tarjetas para medir pedidos por publicación.</p>`}
+    </div>
+    <div class="kpi-card">
+      <small>Alcance semanal por día</small>
       <div class="reach-bars">
         ${reachByDay.map(x => {
           const pct = Math.max(10, Math.round((x.val / maxReach) * 100));
@@ -863,7 +885,7 @@ function renderPulse() {
       <button class="btn" data-action="test-meta" type="button" style="border-color:var(--accent);color:#fdba74;">${icon("cloud")} Probar conexión Meta FB/IG</button>
       <a class="btn btn-wa" href="${escapeHtml(waTestUrl)}" target="_blank" rel="noopener">💬 Probar enlace WhatsApp</a>
       <a class="btn" href="https://www.facebook.com/La-Parrilla-106299351752487" target="_blank" rel="noopener" style="border-color:#1877f2;color:#93c5fd;">🚀 Abrir Página FB (grupos)</a>
-      <button class="btn" data-action="test-telegram" type="button" style="border-color:#38bdf8;color:#7dd3fc;">📲 Probar aviso Telegram</button>
+      <button class="btn" data-action="test-telegram" type="button" style="border-color:#38bdf8;color:#7dd3fc;">📲 Probar alertas (Telegram / Correo)</button>
     </div>
     <div class="card" style="padding:14px;">
       <h3 style="margin:0 0 8px;font-size:var(--fs-md);">🚨 Registro de errores (Log_Errores)</h3>
@@ -1010,6 +1032,7 @@ function renderCompactRow(post) {
           <span class="id-chip">ID ${escapeHtml(post.id)}</span>
           <span class="format-chip">${escapeHtml(post.red)} · ${escapeHtml(post.formato)}</span>
           <span class="status-badge ${badgeCls}">${escapeHtml(post.estado)}</span>
+          ${(Number(post.clics_wa) || 0) > 0 ? `<span class="editor-chip" style="background:rgba(34,197,94,0.16);color:#86efac;">💬 ${Number(post.clics_wa)}</span>` : ""}
           ${unseen ? `<span class="new-badge">NUEVO · ${escapeHtml(post.editado_por)}</span>` : ""}
         </div>
         <div class="compact-excerpt">${blocks.length ? "🔒 " + escapeHtml(blocks[0]) : escapeHtml(excerpt)}</div>
@@ -1093,6 +1116,10 @@ function renderFullCard(post) {
       </div>
       ${renderCopyMetaStrip(post, mode, key)}
       <div class="preview-stage">${renderMockup(post, mode, key)}</div>
+      <div style="padding:8px 12px;background:#15110e;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:var(--fs-xs);color:#86efac;font-weight:800;">💬 ${Number(post.clics_wa) || 0} clics WA</span>
+        <button class="quick-chip" type="button" data-action="copy-wa-link" style="height:34px;border-color:rgba(34,197,94,0.5);color:#86efac;">🔗 Copiar link WA</button>
+      </div>
       ${storyKitHtml}
       ${retryErrorHtml}
       ${shareGroupsHtml}
@@ -1515,7 +1542,8 @@ document.getElementById("feed").addEventListener("click", async (e) => {
     if (!syncCfg.url) { showToast("Conecta Google Sheets primero", { type: "warn" }); return; }
     await withLoading(testTgBtn, async () => {
       const d = await pushToSheets({ action: "sendTelegramTest" });
-      showToast(d.ok ? "✅ Aviso enviado a Telegram" : ("⚠️ " + (d.error || "Falta configurar Telegram")), { type: d.ok ? "success" : "error" });
+      const via = d.channel === "telegram+email" ? "Telegram y Correo" : (d.channel === "email" ? "Correo de respaldo" : "Telegram");
+      showToast(d.ok ? `✅ Alerta enviada vía ${via}` : ("⚠️ " + (d.error || "No se pudo enviar alerta")), { type: d.ok ? "success" : "error" });
     });
     return;
   }
@@ -1673,6 +1701,17 @@ document.getElementById("feed").addEventListener("click", async (e) => {
     return;
   }
 
+  if (action === "copy-wa-link") {
+    const waTrackUrl = buildTrackableWaUrl(post.id);
+    try {
+      await navigator.clipboard.writeText(waTrackUrl);
+      showToast(syncCfg.url ? `🔗 Link WA rastreable de ID ${post.id} copiado` : "🔗 Link WhatsApp copiado (conecta Sheets para rastreo)", { type: "success" });
+    } catch {
+      showToast("No se pudo copiar el link WA", { type: "error" });
+    }
+    return;
+  }
+
   if (action === "copy-one") {
     const mode = previewMode["P_" + id] || (post.formato === "STORY" ? "STORY" : "IG");
     const textToCopy = (mode === "STORY" || post.formato === "STORY") ? getEffectiveStoryCopy(post) : post.copy;
@@ -1820,6 +1859,36 @@ document.getElementById("editDestContainer").addEventListener("change", (e) => {
   destState["EDIT_MODAL"][cb.dataset.destField] = cb.checked;
   document.getElementById("editDestContainer").innerHTML = renderDestSelector("EDIT_MODAL", destState["EDIT_MODAL"]);
 });
+// ✨ Redactor rápido con IA en Editar + Insertar link WA rastreable
+document.getElementById("editQuickAiBtn").addEventListener("click", async (e) => {
+  if (!syncCfg.url) { showToast("Conecta Google Sheets para usar el redactor IA", { type: "warn" }); return; }
+  await withLoading(e.currentTarget, async () => {
+    const idea = document.getElementById("editCopy").value.trim();
+    const fecha = document.getElementById("editFecha").value;
+    const d = await pushToSheets({ action: "generateCopy", mode: "quick", idea, fecha, formato: "POST" });
+    if (d && d.ok && d.copy) {
+      document.getElementById("editCopy").value = d.copy;
+      if (d.copyStory) document.getElementById("editCopyStory").value = String(d.copyStory).slice(0, 90);
+      refreshEditPreview();
+      showToast("✨ Copy y Copy_Story redactados con Gemini", { type: "success" });
+    } else if (d && d.missingGeminiKey) {
+      showToast("⚠️ Falta GEMINI_API_KEY en Propiedades de script (Apps Script)", { type: "warn", duration: 6000 });
+    } else {
+      showToast("⚠️ " + ((d && d.error) || "No se pudo redactar con IA"), { type: "error" });
+    }
+  });
+});
+
+document.getElementById("editInsertWaBtn").addEventListener("click", () => {
+  const url = buildTrackableWaUrl(editingPostId);
+  const ta = document.getElementById("editCopy");
+  if (!ta.value.includes(url)) {
+    ta.value = (ta.value.trim() ? ta.value.trim() + " 👉 " : "Pide por WhatsApp 👉 ") + url;
+    refreshEditPreview();
+  }
+  showToast(syncCfg.url ? `🔗 Link WA rastreable (ID ${editingPostId}) insertado` : "🔗 Link WhatsApp insertado", { type: "success" });
+});
+
 document.getElementById("editPostModal").addEventListener("click", async (e) => {
   const aiBtn = e.target.closest("[data-edit-ai]");
   if (aiBtn) {
@@ -2054,6 +2123,26 @@ document.getElementById("newPostDestContainer").addEventListener("change", (e) =
   refreshNewPostLive();
 });
 document.getElementById("newPostPickPhotoBtn").addEventListener("click", () => openGalleryFor({ type: "new" }, "FEED"));
+
+// ✨ Redactor rápido con IA en + Nueva
+document.getElementById("newQuickAiBtn").addEventListener("click", async (e) => {
+  if (!syncCfg.url) { showToast("Conecta Google Sheets para usar el redactor IA", { type: "warn" }); return; }
+  await withLoading(e.currentTarget, async () => {
+    const idea = document.getElementById("newPostCopy").value.trim();
+    const fecha = document.getElementById("newPostFecha").value;
+    const d = await pushToSheets({ action: "generateCopy", mode: "quick", idea, fecha, formato: "POST" });
+    if (d && d.ok && d.copy) {
+      document.getElementById("newPostCopy").value = d.copy;
+      if (d.copyStory) document.getElementById("newPostCopyStory").value = String(d.copyStory).slice(0, 90);
+      refreshNewPostLive();
+      showToast("✨ Copy y Copy_Story redactados con Gemini", { type: "success" });
+    } else if (d && d.missingGeminiKey) {
+      showToast("⚠️ Falta GEMINI_API_KEY en Propiedades de script (Apps Script)", { type: "warn", duration: 6000 });
+    } else {
+      showToast("⚠️ " + ((d && d.error) || "No se pudo redactar con IA"), { type: "error" });
+    }
+  });
+});
 
 document.getElementById("newPostModal").addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-new-ai]");
@@ -2393,7 +2482,7 @@ async function runHealthCheck() {
       <div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
     </div>`;
 
-  box.innerHTML = row("⏳", "Comprobando v10…", "Verificando app.js, CSP estricta, Service Worker y Google Apps Script…");
+  box.innerHTML = row("⏳", "Comprobando v11…", "Verificando app.js, CSP estricta, Service Worker, alertas y Google Apps Script…");
 
   let swOk = true;
   try {
@@ -2404,13 +2493,15 @@ async function runHealthCheck() {
   } catch { swOk = false; }
 
   const appHtml = swOk
-    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v10.")
+    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v11.")
     : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Toca 'Recarga limpia' si notas algo desactualizado.");
 
   let serverHtml = "";
+  let alertsHtml = "";
   let sheetHtml = "";
   if (!syncCfg.url) {
     serverHtml = row("❌", "Falta conectar Google Sheets", "Configura tu Web App URL + PIN en ⚙️.");
+    alertsHtml = row("⚠️", "Alertas automáticas (sin conexión)", "Conecta Sheets para ver estado de Telegram y Correo.");
     sheetHtml = row("⚠️", "Modo local", "Mostrando datos locales hasta conectar Sheets.");
   } else {
     const hc = await pushToSheets({ action: "healthCheck" });
@@ -2418,19 +2509,26 @@ async function runHealthCheck() {
       serverHtml = row(
         "✅",
         `Servidor Google conectado (v${hc.bridgeVersion})`,
-        `PIN POST-only ${hc.pinPostOnly ? "✅" : "⚠️"} · Meta FB/IG ${hc.metaConfigured ? "✅" : "⚠️"} · Lock optimista ${hc.optimisticLockEnabled ? "✅" : "⚠️"}`
+        `PIN POST-only ${hc.pinPostOnly ? "✅" : "⚠️"} · Meta FB/IG ${hc.metaConfigured ? "✅" : "⚠️"} · Redactor IA ${hc.geminiConfigured ? "✅" : "⚠️ falta GEMINI_API_KEY"}`
+      );
+      const alertIcon = (hc.telegramConfigured || hc.emailAlertsEnabled) ? "✅" : "⚠️";
+      alertsHtml = row(
+        alertIcon,
+        `Alertas automáticas: ${hc.alertsMode || (hc.telegramConfigured ? "Telegram" : "Correo automático")}`,
+        `Telegram: ${hc.telegramConfigured ? "✅ activo" : "opcional"} · Correo respaldo: ${hc.emailAlertsEnabled ? "✅ activo" : "pendiente"} · Archivado 45d listo`
       );
       sheetHtml = row(
         "✅",
         "Calendario_LaParrilla conectado",
-        `${hc.approvedCount || 0} aprobada(s) · ${hc.publishedCount || 0} publicada(s) · ${hc.errorCount || 0} error(es).`
+        `${hc.approvedCount || 0} aprobada(s) · ${hc.publishedCount || 0} publicada(s) · ${hc.errorCount || 0} error(es) · 💬 ${hc.totalWaClicks || 0} clics WA.`
       );
     } else {
       serverHtml = row("❌", "Error en servidor Google", (hc && hc.error) || "Revisa conexión o PIN.");
+      alertsHtml = row("⚠️", "Alertas no verificadas", "Revisa la conexión con Apps Script.");
       sheetHtml = row("⚠️", "No se pudo verificar Sheets", "Comprueba tu conexión a internet.");
     }
   }
-  box.innerHTML = appHtml + serverHtml + sheetHtml;
+  box.innerHTML = appHtml + serverHtml + alertsHtml + sheetHtml;
 }
 
 document.getElementById("closeHealthBtn").addEventListener("click", () => document.getElementById("healthModal").classList.remove("open"));
