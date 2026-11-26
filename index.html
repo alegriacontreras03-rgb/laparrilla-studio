@@ -56,7 +56,7 @@
     .icon { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; flex-shrink: 0; }
     .icon-sm { width: 14px; height: 14px; vertical-align: -2px; }
 
-    /* ===== HEADER COMPACTO Y COLAPSABLE (<=120px, <=54px compact) ===== */
+    /* ===== HEADER COMPACTO Y ESTABLE (SIN REBOTE AL HACER SCROLL) ===== */
     header {
       position: sticky;
       top: 0;
@@ -65,10 +65,7 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       padding: 4px var(--sp-3);
-      transition: padding 0.2s ease;
     }
-    header.compact .view-tabs,
-    header.compact .filters { display: none; }
     .brand-row {
       display: flex;
       align-items: center;
@@ -553,7 +550,7 @@
     .social-user span { font-size: var(--fs-xs); color: #6b7280; }
     .fb-text { padding: 2px var(--sp-3) var(--sp-2); font-size: var(--fs-sm); color: #1f2937; white-space: pre-wrap; word-break: break-word; }
 
-    /* Recorte real 4:5 en Post IG y FB */
+    /* Recorte real 4:5 centrado en Post IG y FB; clic abre vista completa (object-fit: contain) */
     .media-box {
       width: 100%;
       aspect-ratio: 4 / 5;
@@ -562,7 +559,25 @@
       overflow: hidden;
       cursor: zoom-in;
     }
-    .media-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media-box img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+    .fullscreen-img-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+    .fullscreen-img-contain {
+      max-width: 100%;
+      max-height: 74dvh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #000;
+      border: 1px solid var(--border);
+      display: block;
+    }
     .crop-hint-badge {
       position: absolute;
       top: var(--sp-2);
@@ -856,7 +871,23 @@
       flex-direction: column;
       gap: 6px;
     }
+    .story-copy-box textarea.story-textarea {
+      min-height: 60px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      resize: none;
+      line-height: 1.38;
+    }
     .story-copy-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 700; color: #ffedd5; }
+    .sug-story-preview {
+      font-size: var(--fs-xs);
+      color: var(--muted);
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
 
     .ai-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
     .ai-row::-webkit-scrollbar { display: none; }
@@ -1274,7 +1305,7 @@
             <span>📱 Copy_Story (máx. 90 car.)</span>
             <span id="liveShotCounter">0/90</span>
           </div>
-          <input type="text" id="liveShotCopy" maxlength="90" value="🔥 ¡YA PRENDIMOS EL CARBÓN en La Parrilla! Pide por WhatsApp o ven hoy 7:30 pm." />
+          <textarea class="story-textarea" rows="2" id="liveShotCopy" maxlength="90">🔥 ¡YA PRENDIMOS EL CARBÓN en La Parrilla! Pide por WhatsApp o ven hoy 7:30 pm.</textarea>
         </div>
         <div class="highlight-preview" id="liveShotRuleWarn"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -1357,7 +1388,7 @@
             <span>📱 Copy_Story (Historia 9:16 · máx. 90)</span>
             <span id="newPostStoryCounter">0/90</span>
           </div>
-          <input type="text" id="newPostCopyStory" maxlength="90" placeholder="Ej: 🔥 ¿Ya se te antojó? Vota aquí o pide por WhatsApp 👇" />
+          <textarea class="story-textarea" rows="2" id="newPostCopyStory" maxlength="90" placeholder="Ej: 🔥 ¿Ya se te antojó? Vota aquí o pide por WhatsApp 👇"></textarea>
         </div>
 
         <div id="newPostDestContainer"></div>
@@ -1427,7 +1458,7 @@
             <span>📱 Copy_Story (Historia 9:16 · máx. 90)</span>
             <span id="editStoryCounter">0/90</span>
           </div>
-          <input type="text" id="editCopyStory" maxlength="90" placeholder="Texto breve para Historia (máx. 90 car.)" />
+          <textarea class="story-textarea" rows="2" id="editCopyStory" maxlength="90" placeholder="Texto breve para Historia (máx. 90 car.)"></textarea>
         </div>
         <div id="editDestContainer"></div>
       </div>
@@ -1492,7 +1523,7 @@
           <span class="label-xs">Upload Preset de Cloudinary (para subir desde cámara)</span>
           <input type="text" id="cldPresetInput" placeholder="ej. laparrilla_unsigned" />
         </div>
-        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v12)</button>
+        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v12.1)</button>
       </div>
       <div class="modal-footer">
         <button class="btn btn-decline" id="disconnectSyncBtn" type="button" style="flex:0 0 auto;">Desconectar</button>
@@ -1501,12 +1532,12 @@
     </div>
   </div>
 
-  <!-- Modal: 🩺 Diagnóstico del Sistema (v12) -->
+  <!-- Modal: 🩺 Diagnóstico del Sistema (v12.1) -->
   <div class="modal-backdrop" id="healthModal">
     <div class="modal-sheet">
       <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>🩺 Diagnóstico (v12)</h2>
+        <h2>🩺 Diagnóstico (v12.1)</h2>
         <button class="btn" id="closeHealthBtn" type="button">✖</button>
       </div>
       <div class="modal-body">

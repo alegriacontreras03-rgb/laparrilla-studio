@@ -1,6 +1,6 @@
 "use strict";
 
-const APP_VERSION = "v12";
+const APP_VERSION = "v12.1";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
 const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
 const AVATAR_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg";
@@ -772,6 +772,23 @@ function renderMockup(post, mode, key, isFullscreen = false) {
   }
 
   const fullCopy = String(post.copy || "");
+  if (isFullscreen && (mode === "IG" || mode === "FB")) {
+    const origUrl = escapeHtml(applyCloudinaryTransform(post.foto, "ORIG") || safeFoto);
+    return `
+      <div class="fullscreen-img-wrap">
+        <img class="fullscreen-img-contain" src="${origUrl}" alt="Vista completa ID ${pid}" />
+        <div style="font-size:var(--fs-xs);color:var(--muted);text-align:center;">Imagen completa sin recortes (<code>object-fit: contain</code>)</div>
+        <div style="width:100%;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:var(--fs-xs);white-space:pre-wrap;word-break:break-word;">${escapeHtml(fullCopy)}</div>
+      </div>`;
+  }
+
+  const isExpandedCap = !!expandedCaptions[key] || fullCopy.length <= 125;
+  const captionHtml = fullCopy.length <= 125
+    ? escapeHtml(fullCopy)
+    : (isExpandedCap
+      ? `${escapeHtml(fullCopy)} <button type="button" class="ig-more-btn" data-toggle-caption="${escapeHtml(key)}">ver menos</button>`
+      : `${escapeHtml(fullCopy.slice(0, 125).trim())}… <button type="button" class="ig-more-btn" data-toggle-caption="${escapeHtml(key)}">más</button>`);
+
   if (mode === "FB") {
     return `
       <div class="phone-frame fb">
@@ -782,21 +799,16 @@ function renderMockup(post, mode, key, isFullscreen = false) {
             <span>${fechaLabel}</span>
           </div>
         </div>
-        <div class="fb-text">${escapeHtml(fullCopy)}</div>
+        <div class="fb-text">${captionHtml}</div>
         <div class="media-box" data-fullscreen-key="${escapeHtml(key)}" data-fullscreen-mode="FB">
           <img src="${safeFoto}" alt="La Parrilla ID ${pid}" loading="lazy" />
-          ${needsCropHint ? '<span class="crop-hint-badge">✂️ Recorte 4:5</span>' : ""}
+          ${needsCropHint ? '<span class="crop-hint-badge">✂️ 4:5 · Toca para ver completa</span>' : '<span class="crop-hint-badge">🔍 Toca para ver completa</span>'}
         </div>
         <div class="ig-actions" style="font-size:12px;color:#4b5563;padding:8px 12px;border-top:1px solid #e5e7eb;">
           <span>👍 Me gusta</span><span>💬 Comentar</span><span>↗️ Compartir</span>
         </div>
       </div>`;
   }
-
-  const isExpandedCap = isFullscreen || !!expandedCaptions[key] || fullCopy.length <= 125;
-  const captionHtml = isExpandedCap
-    ? escapeHtml(fullCopy)
-    : `${escapeHtml(fullCopy.slice(0, 125).trim())}… <button type="button" class="ig-more-btn" data-expand-caption="${escapeHtml(key)}">más</button>`;
 
   return `
     <div class="phone-frame">
@@ -809,7 +821,7 @@ function renderMockup(post, mode, key, isFullscreen = false) {
       </div>
       <div class="media-box" data-fullscreen-key="${escapeHtml(key)}" data-fullscreen-mode="IG">
         <img src="${safeFoto}" alt="La Parrilla ID ${pid}" loading="lazy" />
-        ${needsCropHint ? '<span class="crop-hint-badge">✂️ Recorte 4:5</span>' : ""}
+        ${needsCropHint ? '<span class="crop-hint-badge">✂️ 4:5 · Toca para ver completa</span>' : '<span class="crop-hint-badge">🔍 Toca para ver completa</span>'}
       </div>
       <div class="ig-actions"><span>❤️ 💬 ✈️</span><span>🔖</span></div>
       <div class="ig-caption"><strong>laparrilla_ixtla</strong> ${captionHtml}</div>
@@ -1215,7 +1227,7 @@ function renderSuggestionsView(feed) {
             <span>📱 Copy_Story (máx. 90)</span>
             <span>${storyText.length}/90</span>
           </div>
-          <input type="text" maxlength="90" data-sug-story="${escapeHtml(sug.sid)}" value="${escapeHtml(storyText)}" />
+          <textarea class="story-textarea" rows="2" maxlength="90" data-sug-story="${escapeHtml(sug.sid)}">${escapeHtml(storyText)}</textarea>
         </div>
         ${renderDestSelector(key, dest)}
         <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -1238,7 +1250,7 @@ function renderSuggestionsView(feed) {
             </div>
             <div class="sug-compact-title">${escapeHtml(sug.titulo)}</div>
             <div class="compact-sub">${escapeHtml(formatReadableDate(sug.fecha, sug.hora))}</div>
-            <div class="compact-excerpt">${escapeHtml(storyText)}</div>
+            <div class="sug-story-preview">${escapeHtml(storyText)}</div>
           </div>
         </div>
         ${customHtml}
@@ -1371,13 +1383,7 @@ function openEditModal(post) {
 }
 
 // ===== EVENT LISTENERS =====
-// Encabezado colapsable al hacer scroll
-let lastScrollY = 0;
-window.addEventListener("scroll", () => {
-  const y = window.scrollY;
-  document.getElementById("appHeader").classList.toggle("compact", y > 120 && y > lastScrollY);
-  lastScrollY = y;
-}, { passive: true });
+// Encabezado fijo estable (sin colapso dinámico que cause rebote/temblor de scroll)
 
 // Pull-to-refresh en feed
 let ptrStartY = 0;
@@ -1445,7 +1451,7 @@ document.getElementById("feed").addEventListener("change", (e) => {
 });
 
 document.getElementById("feed").addEventListener("input", (e) => {
-  const sugSt = e.target.closest("input[data-sug-story]");
+  const sugSt = e.target.closest("[data-sug-story]");
   if (sugSt) {
     const s = suggestions.find(x => x.sid === sugSt.dataset.sugStory);
     if (s) {
@@ -1496,7 +1502,7 @@ document.getElementById("feed").addEventListener("click", async (e) => {
     return;
   }
 
-  // Zonas seguras / expandir caption "...más" / fullscreen preview
+  // Zonas seguras / expandir-contraer caption ("… más" / "ver menos") / fullscreen preview
   const safeBtn = e.target.closest("[data-toggle-safe]");
   if (safeBtn) {
     const k = safeBtn.dataset.toggleSafe;
@@ -1504,9 +1510,11 @@ document.getElementById("feed").addEventListener("click", async (e) => {
     render();
     return;
   }
-  const expCapBtn = e.target.closest("[data-expand-caption]");
-  if (expCapBtn) {
-    expandedCaptions[expCapBtn.dataset.expandCaption] = true;
+  const togCapBtn = e.target.closest("[data-toggle-caption]");
+  if (togCapBtn) {
+    e.stopPropagation();
+    const k = togCapBtn.dataset.toggleCaption;
+    expandedCaptions[k] = !expandedCaptions[k];
     render();
     return;
   }
@@ -1518,7 +1526,7 @@ document.getElementById("feed").addEventListener("click", async (e) => {
     if (k.startsWith("P_")) obj = posts.find(p => p.id === Number(k.slice(2)));
     else if (k.startsWith("S_")) obj = suggestions.find(s => s.sid === k.slice(2));
     if (obj) {
-      document.getElementById("fullscreenTitle").textContent = mode === "STORY" ? "Historia 9:16 (pantalla completa)" : (mode === "FB" ? "Facebook Post 4:5" : "Instagram Post 4:5");
+      document.getElementById("fullscreenTitle").textContent = mode === "STORY" ? "Historia 9:16 (pantalla completa)" : "Imagen completa sin recortes";
       document.getElementById("fullscreenBody").innerHTML = renderMockup(obj, mode, k, true);
       document.getElementById("fullscreenModal").classList.add("open");
     }
@@ -2552,7 +2560,7 @@ async function runHealthCheck() {
       <div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
     </div>`;
 
-  box.innerHTML = row("⏳", "Comprobando v12…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
+  box.innerHTML = row("⏳", "Comprobando v12.1…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
 
   let swOk = true;
   try {
@@ -2563,7 +2571,7 @@ async function runHealthCheck() {
   } catch { swOk = false; }
 
   const appHtml = swOk
-    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.")
+    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.1.")
     : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Toca 'Recarga limpia' si notas algo desactualizado.");
 
   let serverHtml = "";
