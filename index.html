@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.cloudinary.com https://res.cloudinary.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.cloudinary.com https://res.cloudinary.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <title>La Parrilla · Studio</title>
   <meta name="theme-color" content="#ea580c" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -22,151 +22,357 @@
       --text: #f7f3ee;
       --muted: #b0a499;
       --accent: #f97316;
+      --accent-dark: #ea580c;
       --green: #22c55e;
       --amber: #f59e0b;
       --red: #ef4444;
       --blue: #3b82f6;
+      --violet: #a78bfa;
       --ig: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
       --fb: #1877f2;
+      --fs-xs: 11px;
+      --fs-sm: 13px;
+      --fs-md: 15px;
+      --fs-lg: 18px;
+      --fs-xl: 22px;
+      --sp-1: 4px;
+      --sp-2: 8px;
+      --sp-3: 12px;
+      --sp-4: 16px;
+      --sp-5: 20px;
+      --sp-6: 24px;
+      --bar-h: 68px;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-size: var(--fs-sm);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.45;
-      padding-bottom: 100px;
+      line-height: 1.4;
+      padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + var(--sp-4));
     }
+    .icon { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; flex-shrink: 0; }
+    .icon-sm { width: 14px; height: 14px; vertical-align: -2px; }
+
+    /* ===== HEADER COMPACTO Y COLAPSABLE (<=120px, <=54px compact) ===== */
     header {
       position: sticky;
       top: 0;
       z-index: 30;
-      background: rgba(17, 15, 13, 0.95);
+      background: rgba(17, 15, 13, 0.96);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
-      padding: 10px 12px 10px;
+      padding: 6px var(--sp-3);
+      transition: padding 0.2s ease;
     }
+    header.compact .view-tabs,
+    header.compact .filters { display: none; }
     .brand-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: var(--sp-2);
       max-width: 740px;
       margin: 0 auto;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      min-height: 36px;
     }
-    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
     .logo-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 30% 30%, #fb923c, #c2410c);
-      display: grid;
-      place-items: center;
-      font-size: 19px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      overflow: hidden;
       flex-shrink: 0;
-      box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+      border: 1px solid rgba(249, 115, 22, 0.5);
+      background: #14110f;
     }
-    .brand h1 { margin: 0; font-size: 15.5px; font-weight: 800; letter-spacing: -0.02em; }
-    .brand p { margin: 1px 0 0; font-size: 11px; color: var(--muted); }
-    .header-right { display: flex; align-items: center; gap: 6px; }
-    .sync-pill {
-      min-height: 44px;
-      font-size: 11.5px;
+    .logo-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .brand-text { min-width: 0; }
+    .brand h1 {
+      margin: 0;
+      font-size: var(--fs-md);
       font-weight: 800;
-      padding: 8px 12px;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand p { margin: 0; font-size: var(--fs-xs); color: var(--muted); display: none; }
+    @media (min-width: 400px) { .brand p { display: block; } }
+
+    .sync-pill {
+      position: relative;
+      height: 34px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      padding: 0 10px;
       border-radius: 999px;
       background: var(--surface-2);
       border: 1px solid var(--border);
-      color: var(--muted);
+      color: var(--text);
       cursor: pointer;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .sync-pill::after { content: ""; position: absolute; inset: -5px -4px; }
+    .sync-pill.live { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.5); color: #86efac; }
+    .sync-pill.stale { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.5); color: #fcd34d; }
+    .sync-pill.offline { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+
+    /* Selector segmentado de vistas principales: Calendario | Ideas | Pulso */
+    .view-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--sp-1);
+      max-width: 740px;
+      margin: var(--sp-1) auto 0;
+      background: var(--surface);
+      padding: 2px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .view-tab {
+      position: relative;
+      height: 30px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 0 var(--sp-1);
+    }
+    .view-tab::after { content: ""; position: absolute; inset: -6px 0; }
+    .view-tab.active { background: var(--surface-2); color: #fff; box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.55); }
+
+    /* 4 filtros de estado siempre visibles a 360 px */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--sp-1);
+      max-width: 740px;
+      margin: var(--sp-1) auto 0;
+    }
+    .filters.hidden { display: none; }
+    .filter-btn {
+      position: relative;
+      height: 32px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      padding: 0 var(--sp-1);
+      border-radius: 999px;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    .filter-btn::after { content: ""; position: absolute; inset: -6px 0; }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .filter-btn.has-errors { border-color: rgba(239, 68, 68, 0.65); color: #fca5a5; }
+    .filter-btn.has-errors.active { background: var(--red); border-color: var(--red); color: #fff; }
+    .err-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+    }
+
+    /* Banner offline fijo */
+    .offline-banner {
+      display: none;
+      max-width: 740px;
+      margin: var(--sp-2) auto 0;
+      padding: var(--sp-2) var(--sp-3);
+      background: rgba(239, 68, 68, 0.16);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      text-align: center;
+    }
+    .offline-banner.show { display: block; }
+
+    /* Pull-to-refresh indicator */
+    .ptr-indicator {
+      text-align: center;
+      font-size: var(--fs-xs);
+      color: #fdba74;
+      font-weight: 700;
+      height: 0;
+      overflow: hidden;
+      transition: height 0.15s ease;
+    }
+
+    /* ===== MAIN FEED ===== */
+    main {
+      max-width: 740px;
+      margin: var(--sp-2) auto 0;
+      padding: 0 var(--sp-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+    }
+
+    /* Tira semanal compacta (40px) con fecha + puntos */
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--sp-1);
+    }
+    .day-pill {
+      height: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px var(--sp-1);
+      text-align: center;
+      cursor: pointer;
+      color: var(--text);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      white-space: nowrap;
+    }
+    .day-pill.active { border-color: var(--accent); background: #291e16; }
+    .day-dots { display: flex; justify-content: center; gap: 3px; min-height: 7px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .dot.draft { background: var(--amber); }
+    .dot.approved { background: var(--green); }
+    .dot.published { background: var(--blue); }
+    .dot.error { background: var(--red); box-shadow: 0 0 5px rgba(239, 68, 68, 0.9); }
+
+    /* Barra de resumen + toggle vista compacta */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .summary-bar::-webkit-scrollbar { display: none; }
+    .summary-chips { display: flex; align-items: center; gap: var(--sp-1); flex-wrap: nowrap; }
+    .sum-chip {
+      height: 32px;
+      padding: 0 var(--sp-2);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .sync-pill.live {
-      background: rgba(34, 197, 94, 0.16);
-      border-color: rgba(34, 197, 94, 0.45);
-      color: #86efac;
-    }
-    .sync-pill.offline {
-      background: rgba(239, 68, 68, 0.16);
-      border-color: rgba(239, 68, 68, 0.45);
-      color: #fca5a5;
-    }
-    .week-strip {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      max-width: 740px;
-      margin: 10px auto 0;
-    }
-    .day-pill {
-      min-height: 44px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px 4px;
-      text-align: center;
-      cursor: pointer;
-      color: var(--text);
-      font-size: 11.5px;
-      font-weight: 700;
+    .sum-chip.warn { border-color: rgba(245, 158, 11, 0.5); color: #fcd34d; }
+    .sum-chip.err { border-color: rgba(239, 68, 68, 0.6); color: #fca5a5; background: rgba(239, 68, 68, 0.12); }
+    .sum-chip.new-other { border-color: rgba(249, 115, 22, 0.65); color: #fdba74; background: rgba(249, 115, 22, 0.14); }
+
+    /* ===== TARJETA COMPACTA (~108 px) ===== */
+    .compact-row {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-    }
-    .day-pill.active { border-color: var(--accent); background: #291e16; }
-    .day-dots { display: flex; justify-content: center; gap: 4px; margin-top: 4px; min-height: 8px; flex-wrap: wrap; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-    .dot.draft { background: var(--amber); }
-    .dot.approved { background: var(--green); }
-    .dot.published { background: var(--blue); }
-    .dot.error { background: var(--red); box-shadow: 0 0 6px rgba(239, 68, 68, 0.85); }
-    .filters {
-      display: flex;
-      gap: 7px;
-      max-width: 740px;
-      margin: 10px auto 0;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-    .filter-btn {
-      min-height: 44px;
-      border: 1px solid var(--border);
+      gap: var(--sp-3);
+      padding: var(--sp-2) var(--sp-3);
       background: var(--surface);
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      min-height: 100px;
       cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .compact-row.approved { border-color: rgba(34, 197, 94, 0.45); }
+    .compact-row.published { border-color: rgba(59, 130, 246, 0.45); }
+    .compact-row.error { border-color: rgba(239, 68, 68, 0.65); }
+    .compact-row.is-unseen, .card.is-unseen { border-left: 4px solid var(--accent); }
+    .compact-row.flash-green, .card.flash-green { animation: approveFlash 0.65s ease; }
+    @keyframes approveFlash {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); border-color: var(--green); }
+      100% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    }
+    .compact-thumb {
+      width: 64px;
+      height: 80px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #14110f;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .compact-thumb.is-story { width: 52px; height: 84px; }
+    .compact-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .compact-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .compact-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .compact-date { font-size: var(--fs-sm); font-weight: 800; color: var(--text); white-space: nowrap; }
+    .compact-sub { font-size: var(--fs-xs); color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .compact-excerpt {
+      font-size: var(--fs-xs);
+      color: var(--muted);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .quick-approve-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(34, 197, 94, 0.55);
+      background: rgba(22, 101, 52, 0.45);
+      color: #86efac;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
-    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .filter-btn.has-errors { border-color: rgba(239, 68, 68, 0.65); color: #fca5a5; }
-    .filter-btn.has-errors.active { background: var(--red); border-color: var(--red); color: #fff; }
-    main {
-      max-width: 740px;
-      margin: 14px auto;
-      padding: 0 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    .quick-approve-btn.is-approved { background: #166534; color: #fff; border-color: var(--green); }
+    .quick-approve-btn:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--border); background: var(--surface-2); color: var(--muted); }
+
+    /* ===== TARJETA EXPANDIDA ===== */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      transition: transform 0.25s ease, opacity 0.25s ease, border-color 0.2s ease;
     }
+    .card.slide-out { transform: translateX(110%); opacity: 0; }
     .card.approved { border-color: rgba(34, 197, 94, 0.55); }
     .card.published { border-color: rgba(59, 130, 246, 0.55); }
     .card.error { border-color: rgba(239, 68, 68, 0.65); }
@@ -174,252 +380,390 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 11px 14px;
+      gap: var(--sp-2);
+      padding: var(--sp-2) var(--sp-3);
       background: var(--surface-2);
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
     }
-    .meta-left { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .meta-left { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
     .id-chip {
-      font-size: 11px;
+      font-size: var(--fs-xs);
       font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 8px;
+      padding: 2px 7px;
+      border-radius: 6px;
       background: rgba(249, 115, 22, 0.16);
       color: #fdba74;
       border: 1px solid rgba(249, 115, 22, 0.35);
     }
-    .date-label { font-size: 12.5px; font-weight: 700; }
+    .date-label { font-size: var(--fs-sm); font-weight: 700; }
+    .rel-time { font-size: var(--fs-xs); color: #86efac; font-weight: 700; }
     .format-chip {
-      font-size: 11px;
+      font-size: var(--fs-xs);
       font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 8px;
+      padding: 2px 7px;
+      border-radius: 6px;
       background: #2c251f;
       color: #e7ded5;
     }
     .editor-chip {
-      font-size: 10.5px;
+      font-size: var(--fs-xs);
       font-weight: 700;
-      padding: 3px 7px;
-      border-radius: 8px;
-      background: rgba(59, 130, 246, 0.14);
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(59, 130, 246, 0.16);
       color: #bfdbfe;
     }
-    .status-badge {
-      font-size: 10.5px;
+    .new-badge {
+      font-size: var(--fs-xs);
       font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 999px;
-      letter-spacing: 0.03em;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(249, 115, 22, 0.25);
+      color: #ffedd5;
+      border: 1px solid var(--accent);
     }
-    .status-badge.draft { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .status-badge.approved { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.45); }
-    .status-badge.published { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.45); }
-    .status-badge.error { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); }
-    .guardrail-bar {
-      padding: 8px 14px;
-      font-size: 12px;
+    .status-badge {
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      white-space: nowrap;
+    }
+    .status-badge.draft { background: rgba(245, 158, 11, 0.16); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.45); }
+    .status-badge.approved { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.5); }
+    .status-badge.published { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.5); }
+    .status-badge.error { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.55); }
+    .status-badge.shared { background: rgba(167, 139, 250, 0.18); color: #ddd6fe; border: 1px solid rgba(167, 139, 250, 0.5); }
+
+    /* Reglas separadas: bloqueantes (rojo) vs consejos (ámbar) */
+    .guardrail-list { display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
+    .guard-item {
+      padding: 6px var(--sp-3);
+      font-size: var(--fs-xs);
       font-weight: 700;
       display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-    .guardrail-bar.ok { background: rgba(34, 197, 94, 0.08); color: #86efac; }
-    .guardrail-bar.warn { background: rgba(239, 68, 68, 0.14); color: #fca5a5; }
-    .sug-title {
-      padding: 10px 14px;
-      font-size: 13.5px;
-      font-weight: 700;
-      color: #fdba74;
-      background: #181411;
-      border-bottom: 1px solid var(--border);
-    }
-    .mode-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      align-items: flex-start;
       gap: 6px;
-      padding: 9px 12px;
+    }
+    .guard-item.ok { background: rgba(34, 197, 94, 0.08); color: #86efac; }
+    .guard-item.block { background: rgba(239, 68, 68, 0.16); color: #fecaca; }
+    .guard-item.tip { background: rgba(245, 158, 11, 0.14); color: #fde68a; }
+
+    /* Control segmentado de vista previa + badge fijo de copy */
+    .mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2);
+      padding: var(--sp-2) var(--sp-3);
       background: #161310;
       border-bottom: 1px solid var(--border);
     }
-    .mode-btn {
-      min-height: 44px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      padding: 8px 6px;
+    .mode-seg {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2px;
+      flex: 1;
+      background: var(--bg);
+      padding: 2px;
       border-radius: 10px;
-      font-size: 11.5px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      font-size: var(--fs-xs);
       font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
+      padding: 0 4px;
     }
-    .mode-btn.active { background: #2b231d; color: #fff; border-color: var(--accent); }
+    .mode-btn.active { background: #2b231d; color: #fff; box-shadow: inset 0 0 0 1px var(--accent); }
+
+    .copy-meta-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2);
+      padding: 6px var(--sp-3);
+      background: #120f0d;
+      border-bottom: 1px solid var(--border);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+    }
+    .copy-meta-strip.ok { color: #86efac; }
+    .copy-meta-strip.warn { color: #fcd34d; }
+    .copy-meta-strip.over { color: #fca5a5; }
+    .safe-zone-toggle {
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .safe-zone-toggle.active { border-color: var(--accent); color: #fdba74; }
+
+    /* ===== PREVIEWS FIELES 4:5 Y 9:16 ===== */
     .preview-stage {
-      padding: 14px 12px;
+      padding: var(--sp-3);
       display: flex;
       justify-content: center;
       background: #0d0b0a;
     }
     .phone-frame {
       width: 100%;
-      max-width: 390px;
+      max-width: 340px;
       background: #ffffff;
       color: #111827;
-      border-radius: 18px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
     }
-    .social-header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+    .social-header { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); }
     .avatar-ring {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       padding: 2px;
       background: var(--ig);
       flex-shrink: 0;
     }
     .phone-frame.fb .avatar-ring { background: var(--fb); }
-    .avatar-inner {
+    .avatar-ring img {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: #14110f;
-      display: grid;
-      place-items: center;
-      font-size: 15px;
+      object-fit: cover;
       border: 2px solid #fff;
+      display: block;
     }
     .social-user { display: flex; flex-direction: column; min-width: 0; }
-    .social-user strong { font-size: 13px; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .social-user span { font-size: 11px; color: #6b7280; }
-    .fb-text { padding: 2px 12px 10px; font-size: 13.5px; color: #1f2937; white-space: pre-wrap; word-break: break-word; }
-    .media-box { width: 100%; background: #14110f; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .media-box img { width: 100%; max-height: 460px; object-fit: cover; display: block; }
-    .ig-actions { display: flex; justify-content: space-between; padding: 9px 12px 4px; font-size: 18px; }
-    .ig-caption { padding: 4px 12px 14px; font-size: 13.5px; color: #111827; white-space: pre-wrap; word-break: break-word; }
+    .social-user strong { font-size: var(--fs-sm); color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .social-user span { font-size: var(--fs-xs); color: #6b7280; }
+    .fb-text { padding: 2px var(--sp-3) var(--sp-2); font-size: var(--fs-sm); color: #1f2937; white-space: pre-wrap; word-break: break-word; }
+
+    /* Recorte real 4:5 en Post IG y FB */
+    .media-box {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      background: #14110f;
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    .media-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .crop-hint-badge {
+      position: absolute;
+      top: var(--sp-2);
+      right: var(--sp-2);
+      background: rgba(17, 15, 13, 0.78);
+      color: #fde68a;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      pointer-events: none;
+    }
+    .ig-actions { display: flex; justify-content: space-between; padding: var(--sp-2) var(--sp-3) 4px; font-size: 16px; }
+    .ig-caption { padding: 4px var(--sp-3) var(--sp-3); font-size: var(--fs-sm); color: #111827; white-space: pre-wrap; word-break: break-word; }
+    .ig-more-btn {
+      border: none;
+      background: none;
+      color: #6b7280;
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      cursor: pointer;
+      padding: 0 2px;
+    }
+
+    /* Historia 9:16 real que cabe completa en pantalla */
     .story-frame {
       position: relative;
-      width: 100%;
-      max-width: 300px;
+      width: min(240px, calc((100dvh - 300px) * 9 / 16));
       aspect-ratio: 9 / 16;
-      border-radius: 22px;
+      border-radius: 20px;
       overflow: hidden;
       background: #000;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+      cursor: zoom-in;
     }
-    .story-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .story-frame img.story-bg { width: 100%; height: 100%; object-fit: cover; display: block; }
     .story-top {
       position: absolute;
       inset: 0 0 auto 0;
-      padding: 10px 12px 24px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.72), transparent);
+      padding: var(--sp-2) 10px var(--sp-5);
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent);
       color: #fff;
+      z-index: 2;
     }
-    .story-bars { height: 3px; border-radius: 99px; background: rgba(255,255,255,0.35); overflow: hidden; margin-bottom: 10px; }
-    .story-bars > div { width: 65%; height: 100%; background: #fff; }
-    .story-user-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
-    .story-user-row small { display: block; font-weight: 500; opacity: 0.85; font-size: 10.5px; }
-    .story-caption-overlay {
+    .story-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-bottom: var(--sp-2); }
+    .story-bars span { height: 2.5px; border-radius: 99px; background: rgba(255, 255, 255, 0.35); overflow: hidden; display: block; }
+    .story-bars span.done { background: #fff; }
+    .story-bars span.curr::after { content: ""; display: block; width: 60%; height: 100%; background: #fff; }
+    .story-user-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: var(--fs-xs); font-weight: 700; }
+    .story-user-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .story-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid #fff; flex-shrink: 0; }
+    .story-mid {
       position: absolute;
-      inset: auto 12px 18px 12px;
-      background: rgba(17, 15, 13, 0.82);
-      backdrop-filter: blur(8px);
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 12.5px;
-      line-height: 1.35;
-      border: 1px solid rgba(255,255,255,0.16);
-      max-height: 38%;
-      overflow-y: auto;
-      white-space: pre-wrap;
+      inset: 38% 10px auto 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 2;
     }
+    .story-pill-text {
+      background: rgba(17, 15, 13, 0.82);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.3;
+      max-width: 100%;
+      word-break: break-word;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    }
+    .story-wa-sticker {
+      background: #fff;
+      color: #111827;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      white-space: nowrap;
+    }
+    .story-bottom-bar {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: var(--sp-2) 10px 10px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 2;
+    }
+    .story-reply-pill {
+      flex: 1;
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: var(--fs-xs);
+      color: rgba(255, 255, 255, 0.9);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .story-safe-top, .story-safe-bottom {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+      z-index: 3;
+      font-size: 10px;
+      color: #fde047;
+      font-weight: 800;
+      text-align: center;
+    }
+    .story-frame.show-safe .story-safe-top {
+      display: block;
+      top: 0;
+      height: 14%;
+      border-bottom: 1.5px dashed #fde047;
+      background: rgba(250, 204, 21, 0.12);
+    }
+    .story-frame.show-safe .story-safe-bottom {
+      display: block;
+      bottom: 0;
+      height: 20%;
+      border-top: 1.5px dashed #fde047;
+      background: rgba(250, 204, 21, 0.12);
+    }
+
     .story-kit {
-      padding: 11px 14px;
+      padding: var(--sp-2) var(--sp-3);
       background: #171310;
       border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--sp-2);
     }
-    .story-kit-hint { font-size: 12px; color: #fdba74; }
-    .story-kit-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .editor-area {
-      padding: 12px 14px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .editor-area.hidden { display: none; }
-    textarea, input[type="text"], input[type="url"], input[type="password"], input[type="date"], input[type="time"], select {
-      width: 100%;
+    .story-kit-hint { font-size: var(--fs-xs); color: #fdba74; }
+    .story-kit-btns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+
+    /* ===== BOTONES CON LOADING ANTI DOBLE TOQUE ===== */
+    .btn, .btn-primary, .btn-secondary {
       min-height: 44px;
-      background: #120f0d;
-      color: var(--text);
-      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 10px 12px;
-      font-family: inherit;
-      font-size: 14px;
-    }
-    textarea { min-height: 115px; line-height: 1.45; resize: vertical; }
-    textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent); }
-    .card-actions {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      padding: 11px 12px 13px;
-      border-top: 1px solid var(--border);
-    }
-    @media (min-width: 520px) {
-      .card-actions { grid-template-columns: repeat(4, 1fr); }
-    }
-    .sug-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      padding: 12px 14px 14px;
-      border-top: 1px solid var(--border);
-    }
-    .btn {
-      min-height: 44px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      padding: 9px 10px;
-      border-radius: 12px;
-      font-size: 12.5px;
+      font-size: var(--fs-sm);
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 6px;
       text-decoration: none;
+      white-space: nowrap;
+      padding: 0 var(--sp-3);
+      transition: opacity 0.15s ease, transform 0.1s ease;
     }
-    .btn-approve { background: #166534; border-color: #22c55e; color: #fff; }
+    .btn { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
+    .btn-primary { border: none; background: var(--accent-dark); color: #fff; font-weight: 800; }
+    .btn-secondary { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
+    .btn-approve { background: #166534; border-color: var(--green); color: #fff; }
     .btn-approve.is-approved { background: #27272a; border-color: #52525b; color: #d4d4d8; }
-    .btn-decline { background: #2b1818; border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
-    .btn-wa { background: #14532d; border-color: #22c55e; color: #dcfce7; }
+    .btn-decline { background: #2b1818; border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+    .btn-wa { background: #14532d; border-color: var(--green); color: #dcfce7; }
     .btn-live {
-      background: linear-gradient(135deg, #dc2626, #ea580c);
+      background: linear-gradient(135deg, #ea580c, #dc2626);
       border: 1px solid #fb923c;
       color: #fff;
+      font-weight: 800;
       box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
     }
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .kpi-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
+    .btn:disabled, .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.48; cursor: not-allowed; pointer-events: none; }
+    .btn.loading, .btn-primary.loading, .btn-secondary.loading, .quick-approve-btn.loading {
+      opacity: 0.65;
+      pointer-events: none;
     }
-    .kpi-card small { color: var(--muted); font-size: 11.5px; display: block; }
-    .kpi-card strong { font-size: 22px; color: #fff; display: block; margin-top: 4px; }
+    .btn.loading::before, .btn-primary.loading::before, .btn-secondary.loading::before, .quick-approve-btn.loading::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--sp-2);
+      padding: var(--sp-3);
+      border-top: 1px solid var(--border);
+    }
+    @media (min-width: 520px) { .card-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+    /* ===== BARRA INFERIOR LIMPIA (3 BOTONES, 1 LÍNEA A 360 PX) ===== */
     .bottom-bar {
       position: fixed;
       inset: auto 0 0 0;
@@ -427,121 +771,244 @@
       background: rgba(20, 17, 15, 0.96);
       backdrop-filter: blur(12px);
       border-top: 1px solid var(--border);
-      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      padding: 10px var(--sp-3) calc(10px + env(safe-area-inset-bottom));
     }
-    .bottom-inner { max-width: 740px; margin: 0 auto; display: flex; gap: 7px; }
-    .btn-primary {
-      min-height: 46px;
-      flex: 1;
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .btn-secondary {
-      min-height: 46px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+    .bottom-inner { max-width: 740px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+    .bottom-sync-btn { width: 48px; height: 48px; padding: 0; flex-shrink: 0; }
+    .bottom-new-btn { flex: 1; height: 48px; border-color: rgba(249, 115, 22, 0.55); color: #fdba74; }
+    .bottom-live-btn { flex: 1.25; height: 48px; }
+
+    /* ===== INPUTS & DESTINOS ===== */
+    textarea, input[type="text"], input[type="url"], input[type="password"], input[type="date"], input[type="time"], select {
+      width: 100%;
+      min-height: 44px;
+      background: #120f0d;
       color: var(--text);
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: var(--sp-2) var(--sp-3);
+      font-family: inherit;
+      font-size: var(--fs-sm);
     }
+    textarea { min-height: 104px; line-height: 1.45; resize: vertical; }
+    textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .label-xs { font-size: var(--fs-xs); color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px; }
+
     .dest-box {
-      padding: 11px 14px;
+      padding: var(--sp-2) var(--sp-3);
       background: #16120f;
-      border-top: 1px solid var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--sp-2);
     }
-    .dest-shortcuts { display: flex; gap: 6px; flex-wrap: wrap; }
-    .dest-shortcut-btn {
-      min-height: 44px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: #fdba74;
-      padding: 8px 11px;
+    .dest-seg {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      background: var(--bg);
+      padding: 2px;
       border-radius: 10px;
-      font-size: 11.5px;
-      font-weight: 700;
-      cursor: pointer;
+      border: 1px solid var(--border);
     }
-    .dest-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+    .dest-shortcut-btn {
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: #fdba74;
+      border-radius: 8px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .dest-shortcut-btn.active { background: var(--surface-2); color: #fff; box-shadow: inset 0 0 0 1px var(--accent); }
+    .dest-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .dest-chip {
-      min-height: 44px;
+      min-height: 40px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 6px;
+      padding: 6px var(--sp-2);
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--surface);
-      font-size: 12px;
+      font-size: var(--fs-xs);
       font-weight: 700;
       cursor: pointer;
       user-select: none;
+      white-space: nowrap;
     }
-    .dest-chip.checked {
-      border-color: var(--accent);
-      background: rgba(249, 115, 22, 0.14);
-      color: #fff;
-    }
-    .dest-chip input { accent-color: var(--accent); width: 17px; height: 17px; margin: 0; min-height: auto; }
-    .dest-summary { font-size: 11.5px; color: var(--muted); }
+    .dest-chip.checked { border-color: var(--accent); background: rgba(249, 115, 22, 0.14); color: #fff; }
+    .dest-chip input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; min-height: auto; }
+    .dest-summary { font-size: var(--fs-xs); color: var(--muted); }
+
     .story-copy-box {
-      padding: 10px 12px;
+      padding: var(--sp-2) var(--sp-3);
       border-radius: 12px;
-      background: rgba(249, 115, 22, 0.08);
-      border: 1px solid rgba(249, 115, 22, 0.35);
+      background: #1f1712;
+      border: 1px solid rgba(249, 115, 22, 0.45);
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .story-copy-head { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: 700; color: #fdba74; }
+    .story-copy-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 700; color: #ffedd5; }
+
+    .ai-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .ai-row::-webkit-scrollbar { display: none; }
+    .ai-chip {
+      height: 36px;
+      padding: 0 var(--sp-3);
+      border-radius: 999px;
+      border: 1px solid rgba(249, 115, 22, 0.45);
+      background: var(--surface-2);
+      color: #ffedd5;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .chip-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .quick-chip {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .quick-chip.active { border-color: var(--accent); background: rgba(249, 115, 22, 0.18); color: #fff; }
+
+    /* Highlight de palabra prohibida debajo del textarea */
+    .highlight-preview {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      font-size: var(--fs-xs);
+      color: #fecaca;
+      line-height: 1.4;
+      display: none;
+    }
+    .highlight-preview.show { display: block; }
+    .highlight-preview mark { background: var(--red); color: #fff; padding: 1px 4px; border-radius: 4px; font-weight: 800; }
+
+    /* ===== MODALES CON FOOTER STICKY (GUARDAR SIEMPRE VISIBLE) ===== */
     .modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 60;
-      background: rgba(0, 0, 0, 0.78);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(4px);
       display: none;
       align-items: flex-end;
       justify-content: center;
-      padding: 12px;
+      padding: var(--sp-2);
     }
     .modal-backdrop.open { display: flex; }
     .modal-sheet {
       width: 100%;
       max-width: 640px;
-      max-height: 88vh;
-      overflow-y: auto;
+      max-height: 92dvh;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      overflow: hidden;
     }
-    .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .modal-head h2 { margin: 0; font-size: 16px; }
-    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .gal-item {
+    .modal-drag {
+      width: 36px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--border);
+      margin: 8px auto 0;
+      flex-shrink: 0;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-2);
+      padding: var(--sp-2) var(--sp-4);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-head h2 { margin: 0; font-size: var(--fs-md); font-weight: 800; }
+    .modal-body {
+      padding: var(--sp-3) var(--sp-4);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      flex: 1;
+    }
+    .modal-footer {
+      position: sticky;
+      bottom: 0;
+      padding: var(--sp-2) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: var(--sp-2);
+      flex-shrink: 0;
+    }
+    .modal-footer > .btn-primary, .modal-footer > .btn { flex: 1; }
+
+    /* Vista previa fija arriba del editor */
+    .edit-sticky-preview {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-2) var(--sp-4);
+      background: #120f0d;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .edit-mini-thumb {
+      width: 58px;
+      height: 74px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .edit-mini-thumb.is-story { width: 46px; height: 80px; }
+    .edit-mini-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .edit-mini-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .edit-mini-text {
+      font-size: var(--fs-xs);
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Galería sticky + recortes reales + tile cámara */
+    .gallery-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--surface);
+      padding: var(--sp-2) var(--sp-4);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+    }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+    .gal-item, .gal-upload-tile {
+      position: relative;
       border: 2px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
@@ -550,1990 +1017,554 @@
       text-align: left;
       padding: 0;
       color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+    .gal-upload-tile {
+      border: 2px dashed var(--accent);
+      background: rgba(249, 115, 22, 0.08);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--sp-2);
+      gap: 6px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      color: #fdba74;
     }
     .gal-item.selected { border-color: var(--accent); }
-    .gal-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
-    .gal-item span { display: block; font-size: 10.5px; padding: 6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gal-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    .gal-img-wrap { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; background: #14110f; }
+    .gallery-grid.crop-feed .gal-img-wrap { aspect-ratio: 4 / 5; }
+    .gallery-grid.crop-story .gal-img-wrap { aspect-ratio: 9 / 16; }
+    .gal-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gal-item span.gal-label { display: block; font-size: var(--fs-xs); padding: 4px 6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Sugerencia compacta */
+    .sug-compact {
+      display: flex;
+      gap: var(--sp-3);
+      padding: var(--sp-3);
+      align-items: flex-start;
+    }
+    .sug-compact-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+    .sug-compact-title { font-size: var(--fs-sm); font-weight: 800; color: #ffedd5; line-height: 1.3; }
+    .sug-actions { display: grid; grid-template-columns: 1.2fr 1fr 48px; gap: var(--sp-2); padding: 0 var(--sp-3) var(--sp-3); }
+
+    /* KPIs & Skeleton */
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: var(--sp-3); }
+    .kpi-card small { color: var(--muted); font-size: var(--fs-xs); display: block; }
+    .kpi-card strong { font-size: var(--fs-xl); color: #fff; display: block; margin-top: 2px; }
+    .reach-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); align-items: end; height: 74px; margin-top: var(--sp-2); }
+    .reach-col { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .reach-fill { width: 100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(to top, var(--accent-dark), #fb923c); min-height: 6px; }
+    .reach-col span { font-size: var(--fs-xs); color: var(--muted); font-weight: 700; }
+
+    .skeleton-row {
+      height: 100px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border: 1px solid var(--border);
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: var(--sp-6) var(--sp-4);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-3);
+    }
+    .empty-state-icon { font-size: 36px; line-height: 1; }
+    .empty-state p { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+
+    /* Hoja de conflicto lado a lado */
+    .conflict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+    .conflict-col {
+      background: #120f0d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: var(--sp-2);
+      font-size: var(--fs-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .conflict-col strong { color: #fdba74; }
+    .conflict-text { white-space: pre-wrap; word-break: break-word; color: var(--text); max-height: 160px; overflow-y: auto; }
+
+    /* Éxito animado Disparo en vivo */
+    .live-success-box {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-2);
+    }
+    .live-success-box.show { display: flex; }
+    .success-check {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.2);
+      border: 3px solid var(--green);
+      color: var(--green);
+      font-size: 32px;
+      display: grid;
+      place-items: center;
+      animation: popIn 0.35s ease;
+    }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Toast con variantes y acción Deshacer */
     .toast {
       position: fixed;
-      bottom: 84px;
+      bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 12px);
       left: 50%;
       transform: translateX(-50%);
       background: #18181b;
       color: #fff;
       border: 1px solid var(--accent);
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: var(--fs-sm);
       font-weight: 700;
-      z-index: 70;
+      z-index: 80;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
       max-width: 92vw;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     }
-    .toast.show { opacity: 1; }
+    .toast.show { opacity: 1; pointer-events: auto; }
+    .toast.success { border-color: var(--green); background: #0f2418; color: #dcfce7; }
+    .toast.error { border-color: var(--red); background: #2c1215; color: #fecaca; }
+    .toast.warn { border-color: var(--amber); background: #291e0f; color: #fef3c7; }
+    .toast-action {
+      border: 1px solid currentColor;
+      background: rgba(255, 255, 255, 0.1);
+      color: inherit;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .toast-close {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>
-  <header>
+  <header id="appHeader">
     <div class="brand-row">
       <div class="brand">
-        <div class="logo-badge">🔥</div>
-        <div>
+        <div class="logo-badge">
+          <img src="https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg" alt="La Parrilla" />
+        </div>
+        <div class="brand-text">
           <h1>La Parrilla · Studio</h1>
           <p>📍 Ixtlahuacán del Río, Jalisco</p>
         </div>
       </div>
-      <div class="header-right">
-        <button class="sync-pill" id="healthBtn" title="Diagnóstico rápido">🩺 Sistema</button>
-        <button class="sync-pill" id="syncPill">⚙️ Conectar</button>
-      </div>
+      <button class="sync-pill" id="syncPill" type="button">⚙️ Conectar</button>
     </div>
 
-    <div class="week-strip" id="weekStrip"></div>
+    <div class="view-tabs" role="tablist">
+      <button class="view-tab active" data-view="CALENDAR" id="viewCalendar" type="button">📅 Calendario</button>
+      <button class="view-tab" data-view="SUGGESTIONS" id="viewSug" type="button">💡 Ideas</button>
+      <button class="view-tab" data-view="PULSE" id="viewPulse" type="button">📊 Pulso</button>
+    </div>
 
-    <div class="filters">
-      <button class="filter-btn active" data-filter="ALL" id="tabAll">Todas</button>
-      <button class="filter-btn" data-filter="BORRADOR" id="tabDraft">Borradores</button>
-      <button class="filter-btn" data-filter="APROBADO" id="tabApproved">Aprobadas</button>
-      <button class="filter-btn" data-filter="PUBLICADO" id="tabPublished">Publicadas</button>
-      <button class="filter-btn" data-filter="ERRORES" id="tabErrors">Errores</button>
-      <button class="filter-btn" data-filter="SUGGESTIONS" id="tabSug">💡 Sugerencias</button>
-      <button class="filter-btn" data-filter="PULSE" id="tabPulse">📊 Pulso</button>
+    <div class="filters" id="statusFilters">
+      <button class="filter-btn active" data-filter="PENDING" id="tabPending" type="button">Pendientes</button>
+      <button class="filter-btn" data-filter="APROBADO" id="tabApproved" type="button">Aprobadas</button>
+      <button class="filter-btn" data-filter="PUBLICADO" id="tabPublished" type="button">Publicadas</button>
+      <button class="filter-btn" data-filter="ALL" id="tabAll" type="button">Todas</button>
     </div>
   </header>
+
+  <div class="offline-banner" id="offlineBanner"></div>
+  <div class="ptr-indicator" id="ptrIndicator">↓ Suelta para sincronizar con Sheets</div>
 
   <main id="feed"></main>
 
   <div class="bottom-bar">
     <div class="bottom-inner">
-      <button class="btn-secondary btn-live" id="liveShotBtn">🔥 Disparo en vivo</button>
-      <button class="btn-secondary" id="newPostBtn" style="border-color:var(--accent);color:#fdba74;">➕ Nueva</button>
-      <button class="btn-primary" id="copyApprovedBtn">📋 Copiar</button>
-      <button class="btn-secondary" id="syncNowBtn" title="Sincronizar con Sheets">🔄</button>
+      <button class="btn-secondary bottom-sync-btn" id="syncNowBtn" type="button" title="Sincronizar con Sheets" aria-label="Sincronizar">🔄</button>
+      <button class="btn-secondary bottom-new-btn" id="newPostBtn" type="button">➕ Nueva</button>
+      <button class="btn-primary btn-live bottom-live-btn" id="liveShotBtn" type="button">🔥 En vivo</button>
     </div>
   </div>
 
-  <!-- Modal: 🔥 Disparo en vivo (Historia rápida FB + IG) -->
+  <!-- Modal: 🔥 Disparo en vivo (Historia 9:16 FB + IG) -->
   <div class="modal-backdrop" id="liveShotModal">
     <div class="modal-sheet">
+      <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>🔥 Disparo en vivo (Historia FB + IG)</h2>
-        <button class="btn" id="closeLiveShotBtn">✖ Cerrar</button>
+        <h2>🔥 Disparo en vivo (FB + IG)</h2>
+        <button class="btn" id="closeLiveShotBtn" type="button">✖</button>
       </div>
-      <p style="margin:0;font-size:12.5px;color:var(--muted);">
-        Sube una foto en caliente del carbón o elige una de tu galería. Se programa al instante en formato <strong>9:16</strong> directo a <strong>Historia FB + Historia IG</strong>.
-      </p>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img id="liveShotThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/c_fill,g_auto,ar_9:16,w_1080,h_1920,q_auto,f_auto/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" alt="Historia en vivo" style="width:60px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--border);" />
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-          <button type="button" class="btn" id="liveShotPickPhotoBtn">📸 Tomar / elegir foto 9:16</button>
-          <div style="font-size:11.5px;color:#86efac;">Destino fijo: <strong>STORY (FB + IG)</strong> · Hora actual MX</div>
+      <div class="modal-body" id="liveShotFormBody">
+        <div style="display:flex;justify-content:center;">
+          <div class="story-frame" id="liveShotPreviewFrame" style="width:170px;cursor:default;">
+            <img class="story-bg" id="liveShotThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/c_fill,g_auto,ar_9:16,w_1080,h_1920,q_auto,f_auto/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" alt="Historia en vivo" />
+            <div class="story-top">
+              <div class="story-bars"><span class="done"></span><span class="curr"></span><span></span></div>
+              <div class="story-user-row">
+                <div class="story-user-left">
+                  <img class="story-avatar" src="https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg" alt="" />
+                  <span>laparrilla_ixtla</span>
+                </div>
+                <span>✕</span>
+              </div>
+            </div>
+            <div class="story-mid">
+              <div class="story-pill-text" id="liveShotOverlayText">🔥 ¡YA PRENDIMOS EL CARBÓN!</div>
+              <div class="story-wa-sticker">🔗 PEDIR POR WHATSAPP</div>
+            </div>
+            <div class="story-bottom-bar">
+              <div class="story-reply-pill">Enviar mensaje…</div>
+              <span>♡</span><span>✈️</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="story-copy-box">
-        <div class="story-copy-head">
-          <span>Texto corto de Historia (máx. 90 caracteres):</span>
-          <span id="liveShotCounter">0/90</span>
+        <button type="button" class="btn" id="liveShotPickPhotoBtn">📸 Tomar o elegir foto 9:16</button>
+        <div class="story-copy-box">
+          <div class="story-copy-head">
+            <span>📱 Copy_Story (máx. 90 car.)</span>
+            <span id="liveShotCounter">0/90</span>
+          </div>
+          <input type="text" id="liveShotCopy" maxlength="90" value="🔥 ¡YA PRENDIMOS EL CARBÓN en La Parrilla! Pide por WhatsApp o ven hoy 7:30 pm." />
         </div>
-        <input type="text" id="liveShotCopy" maxlength="90" value="🔥 ¡YA PRENDIMOS EL CARBÓN en La Parrilla! Pide por WhatsApp o ven hoy 7:30 pm." />
+        <div class="highlight-preview" id="liveShotRuleWarn"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="label-xs" style="margin:0;">Estado al disparar:</span>
+          <button type="button" class="filter-btn active" id="liveShotEstadoBtn" style="width:auto;padding:0 14px;">APROBADO</button>
+        </div>
+        <div id="liveShotConfirmBox" style="display:none;padding:10px 12px;border-radius:12px;background:rgba(249,115,22,0.14);border:1px solid var(--accent);font-size:var(--fs-xs);color:#ffedd5;font-weight:700;"></div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
-        <span style="color:var(--muted);font-weight:700;">Estado al disparar:</span>
-        <button type="button" class="filter-btn active" id="liveShotEstadoBtn">APROBADO</button>
+      <div class="live-success-box" id="liveShotSuccessBox">
+        <div class="success-check">✓</div>
+        <h3 style="margin:0;font-size:var(--fs-lg);">¡Historia programada!</h3>
+        <p style="margin:0;color:var(--muted);font-size:var(--fs-sm);" id="liveShotSuccessDetail">Se publicará en FB + IG. Te avisamos por Telegram cuando Meta confirme.</p>
+        <button type="button" class="btn-primary" id="liveShotDoneBtn" style="width:100%;">Listo</button>
       </div>
-      <button class="btn-primary btn-live" id="saveLiveShotBtn">🚀 Disparar Historia en vivo</button>
+      <div class="modal-footer" id="liveShotFooter">
+        <button class="btn-primary btn-live" id="saveLiveShotBtn" type="button">🚀 Publicar en FB + IG ahora</button>
+      </div>
     </div>
   </div>
 
-  <!-- Modal: Nueva publicación desde cero -->
+  <!-- Modal: ➕ Nueva publicación (Guardar fijo abajo) -->
   <div class="modal-backdrop" id="newPostModal">
     <div class="modal-sheet">
+      <div class="modal-drag"></div>
       <div class="modal-head">
         <h2>➕ Nueva publicación</h2>
-        <button class="btn" id="closeNewPostBtn">✖ Cerrar</button>
+        <button class="btn" id="closeNewPostBtn" type="button">✖</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="modal-body">
+        <div class="edit-sticky-preview" style="padding:8px;border-radius:12px;border:1px solid var(--border);">
+          <div class="edit-mini-thumb"><img id="newPostThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg" alt="Vista previa" /></div>
+          <div class="edit-mini-copy">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <strong style="font-size:var(--fs-xs);color:#fdba74;">Vista previa en vivo (4:5)</strong>
+              <button type="button" class="quick-chip" id="newPostPickPhotoBtn" style="height:30px;">🖼️ Foto</button>
+            </div>
+            <div class="edit-mini-text" id="newPostMiniCopy">Escribe tu texto abajo…</div>
+          </div>
+        </div>
+
         <div>
-          <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Fecha (MX)</label>
-          <input type="date" id="newPostFecha" />
+          <span class="label-xs">Día rápido (próxima semana)</span>
+          <div class="chip-row" id="newPostDayChips"></div>
         </div>
         <div>
-          <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Hora</label>
-          <input type="time" id="newPostHora" value="18:00" />
+          <span class="label-xs">Hora rápida</span>
+          <div class="chip-row" id="newPostTimeChips">
+            <button type="button" class="quick-chip active" data-quick-time="18:00">6:00 pm</button>
+            <button type="button" class="quick-chip" data-quick-time="18:30">6:30 pm</button>
+            <button type="button" class="quick-chip" data-quick-time="19:15">7:15 pm</button>
+            <button type="button" class="quick-chip" data-quick-time="20:00">8:00 pm</button>
+          </div>
+        </div>
+        <details>
+          <summary style="font-size:var(--fs-xs);color:var(--muted);cursor:pointer;font-weight:700;">Otra fecha u hora exacta</summary>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+            <input type="date" id="newPostFecha" />
+            <input type="time" id="newPostHora" value="18:00" />
+          </div>
+        </details>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span class="label-xs" style="margin:0;">📝 Copy largo (Post 4:5)</span>
+            <span class="label-xs" id="newPostCopyCounter" style="margin:0;">0 · corte en 125</span>
+          </div>
+          <div class="ai-row">
+            <button type="button" class="ai-chip" data-new-ai="antojo">✨ Antojo</button>
+            <button type="button" class="ai-chip" data-new-ai="divertido">✨ Divertido</button>
+            <button type="button" class="ai-chip" data-new-ai="familiar">✨ Familiar</button>
+          </div>
+          <div id="newPostAiVariants" style="display:none;flex-direction:column;gap:6px;margin-top:6px;"></div>
+          <textarea id="newPostCopy" style="margin-top:6px;" placeholder="Escribe una idea o el copy completo (sin $, precio, pesitos, 2x1 ni promo de)…"></textarea>
+          <div class="highlight-preview" id="newPostRuleWarn" style="margin-top:6px;"></div>
+        </div>
+
+        <div class="story-copy-box" id="newPostStoryCopyBox">
+          <div class="story-copy-head">
+            <span>📱 Copy_Story (Historia 9:16 · máx. 90)</span>
+            <span id="newPostStoryCounter">0/90</span>
+          </div>
+          <input type="text" id="newPostCopyStory" maxlength="90" placeholder="Ej: 🔥 ¿Ya se te antojó? Vota aquí o pide por WhatsApp 👇" />
+        </div>
+
+        <div id="newPostDestContainer"></div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="label-xs" style="margin:0;">Estado inicial:</span>
+          <button type="button" class="filter-btn" id="newPostEstadoBtn" style="width:auto;padding:0 14px;">BORRADOR</button>
         </div>
       </div>
-      <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Copy / Texto completo (para Post 4:5)</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-        <span style="font-size:11.5px;color:#fdba74;font-weight:700;">✨ IA:</span>
-        <button type="button" class="dest-shortcut-btn" data-new-ai="antojo">🔥 Antojo</button>
-        <button type="button" class="dest-shortcut-btn" data-new-ai="divertido">😂 Divertido</button>
-        <button type="button" class="dest-shortcut-btn" data-new-ai="familiar">👨‍👩‍👧 Familiar</button>
+      <div class="modal-footer">
+        <button class="btn-primary" id="saveNewPostBtn" type="button">💾 Guardar publicación</button>
       </div>
-      <div id="newPostAiVariants" style="display:none;flex-direction:column;gap:6px;"></div>
-      <textarea id="newPostCopy" placeholder="Escribe una idea breve o el texto completo (sin $, precio, pesitos, 2x1 ni promo de)..."></textarea>
-      <div class="story-copy-box" id="newPostStoryCopyBox">
-        <div class="story-copy-head">
-          <span>📱 Copy_Story corto para Historia 9:16 (máx. 90 chars):</span>
-          <span id="newPostStoryCounter">0/90</span>
-        </div>
-        <input type="text" id="newPostCopyStory" maxlength="90" placeholder="Ej: 🔥 ¿Ya se te antojó? Vota aquí o pide por WhatsApp 👇" />
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img id="newPostThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg" alt="Vista previa" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--border);" />
-        <button type="button" class="btn" id="newPostPickPhotoBtn" style="flex:1;">🖼️ Elegir o subir foto</button>
-      </div>
-      <div id="newPostDestContainer"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
-        <span style="color:var(--muted);font-weight:700;">Estado inicial:</span>
-        <button type="button" class="filter-btn" id="newPostEstadoBtn">BORRADOR</button>
-      </div>
-      <button class="btn-primary" id="saveNewPostBtn">💾 Guardar publicación</button>
     </div>
   </div>
 
-  <!-- Modal: Selector visual de fotos Cloudinary -->
+  <!-- Modal: ✏️ Editar publicación (hoja con vista previa fija arriba + Guardar fijo abajo) -->
+  <div class="modal-backdrop" id="editPostModal">
+    <div class="modal-sheet">
+      <div class="modal-drag"></div>
+      <div class="modal-head">
+        <h2 id="editModalTitle">✏️ Editar publicación</h2>
+        <button class="btn" id="closeEditModalBtn" type="button">✖</button>
+      </div>
+      <div class="edit-sticky-preview">
+        <div class="edit-mini-thumb" id="editMiniThumbWrap"><img id="editMiniThumb" src="" alt="" /></div>
+        <div class="edit-mini-copy">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+            <div class="mode-seg" style="max-width:170px;">
+              <button type="button" class="mode-btn active" data-edit-preview="IG" style="height:26px;">IG 4:5</button>
+              <button type="button" class="mode-btn" data-edit-preview="STORY" style="height:26px;">9:16</button>
+              <button type="button" class="mode-btn" data-edit-preview="FB" style="height:26px;">FB</button>
+            </div>
+            <button type="button" class="quick-chip" id="editPickPhotoBtn" style="height:28px;">🖼️ Foto</button>
+          </div>
+          <div class="edit-mini-text" id="editMiniText"></div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <span class="label-xs">Fecha</span>
+            <input type="date" id="editFecha" />
+          </div>
+          <div>
+            <span class="label-xs">Hora</span>
+            <input type="time" id="editHora" />
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span class="label-xs" style="margin:0;">📝 Copy largo (Post)</span>
+            <span class="label-xs" id="editCopyCounter" style="margin:0;">0 · corte en 125</span>
+          </div>
+          <div class="ai-row">
+            <button type="button" class="ai-chip" data-edit-ai="antojo">✨ Antojo</button>
+            <button type="button" class="ai-chip" data-edit-ai="divertido">✨ Divertido</button>
+            <button type="button" class="ai-chip" data-edit-ai="familiar">✨ Familiar</button>
+          </div>
+          <div id="editAiVariants" style="display:none;flex-direction:column;gap:6px;margin-top:6px;"></div>
+          <textarea id="editCopy" style="margin-top:6px;"></textarea>
+          <div class="highlight-preview" id="editRuleWarn" style="margin-top:6px;"></div>
+        </div>
+        <div class="story-copy-box">
+          <div class="story-copy-head">
+            <span>📱 Copy_Story (Historia 9:16 · máx. 90)</span>
+            <span id="editStoryCounter">0/90</span>
+          </div>
+          <input type="text" id="editCopyStory" maxlength="90" placeholder="Texto breve para Historia (máx. 90 car.)" />
+        </div>
+        <div id="editDestContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-decline" id="cancelEditPostBtn" type="button" style="flex:0 0 auto;">🗑️ Cancelar</button>
+        <button class="btn-primary" id="saveEditPostBtn" type="button">💾 Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 🖼️ Galería Cloudinary (cuadrícula arriba y<200px) -->
   <div class="modal-backdrop" id="galleryModal">
     <div class="modal-sheet">
+      <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>🖼️ Galería Cloudinary (sgn99usk)</h2>
-        <button class="btn" id="closeGalleryBtn">✖ Cerrar</button>
+        <h2>🖼️ Galería Cloudinary</h2>
+        <button class="btn" id="closeGalleryBtn" type="button">✖</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#16120f;border:1px solid var(--border);border-radius:12px;">
-        <label class="btn" style="cursor:pointer;border-color:var(--accent);color:#fdba74;">
-          📸 Subir foto nueva
-          <input type="file" id="camUploadInput" accept="image/*" capture="environment" style="display:none;" />
-        </label>
-        <input type="text" id="cldPresetInput" placeholder="Upload Preset Cloudinary (ej. laparrilla_unsigned)" style="flex:1;min-width:160px;font-size:12.5px;" />
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="cropTabs">
-        <button class="filter-btn active" data-crop="ORIG">Original</button>
-        <button class="filter-btn" data-crop="FEED">Recorte Feed 4:5</button>
-        <button class="filter-btn" data-crop="STORY">Recorte Historia 9:16</button>
-      </div>
-      <div style="display:flex;gap:6px;overflow-x:auto;" id="galCatTabs"></div>
-      <div class="gallery-grid" id="galleryGrid"></div>
-    </div>
-  </div>
-
-  <!-- Modal: Diagnóstico rápido (Probar sistema) + Reset seguro -->
-  <div class="modal-backdrop" id="healthModal">
-    <div class="modal-sheet">
-      <div class="modal-head">
-        <h2>🩺 Diagnóstico del Sistema</h2>
-        <button class="btn" id="closeHealthBtn">✖ Cerrar</button>
-      </div>
-      <div id="healthResults" style="display:flex;flex-direction:column;gap:8px;font-size:13px;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="btn-primary" id="recheckHealthBtn">🔄 Volver a probar</button>
-        <button class="btn btn-secondary" id="forceReloadBtn">🧹 Recarga limpia</button>
-      </div>
-      <div style="margin-top:6px;padding:10px 12px;border-radius:12px;background:#1f1414;border:1px solid rgba(239,68,68,0.35);display:flex;flex-direction:column;gap:8px;">
-        <div style="font-size:11.5px;color:#fca5a5;font-weight:700;">⚠️ Zona avanzada (solo respaldo local)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="btn btn-decline" id="resetBtn">↺ Restaurar demo local</button>
-          <button class="btn" id="resetSugsBtn">💡 Reactivar sugerencias</button>
+      <div class="gallery-sticky">
+        <div class="mode-seg" id="cropTabs">
+          <button class="mode-btn active" data-crop="ORIG" type="button">Original</button>
+          <button class="mode-btn" data-crop="FEED" type="button">Feed 4:5</button>
+          <button class="mode-btn" data-crop="STORY" type="button">Historia 9:16</button>
         </div>
+        <div class="chip-row" id="galCatTabs"></div>
+      </div>
+      <div class="modal-body" style="padding-top:var(--sp-2);">
+        <input type="file" id="camUploadInput" accept="image/*" capture="environment" style="display:none;" />
+        <div class="gallery-grid" id="galleryGrid"></div>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Conexión Bidireccional Google Sheets (Apps Script) -->
+  <!-- Modal: ⚙️ Conexión y Configuración (incluye Upload Preset y botón Diagnóstico) -->
   <div class="modal-backdrop" id="syncModal">
     <div class="modal-sheet">
+      <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>☁️ Conexión en vivo con Google Sheets</h2>
-        <button class="btn" id="closeSyncBtn">✖ Cerrar</button>
+        <h2>⚙️ Conexión y Celular</h2>
+        <button class="btn" id="closeSyncBtn" type="button">✖</button>
       </div>
-      <p style="margin:0;font-size:12.5px;color:var(--muted);">
-        El PIN se envía únicamente cifrado en el cuerpo <code>POST</code> (nunca en la URL). Elige quién usa este celular para evitar choques de edición.
-      </p>
-      <label style="font-size:12px;color:var(--muted);font-weight:700;">¿Quién usa este celular?</label>
-      <select id="gasEditorSelect">
-        <option value="Ale">👤 Ale</option>
-        <option value="Esposa">👩 Esposa</option>
-      </select>
-      <label style="font-size:12px;color:var(--muted);font-weight:700;">URL del Web App</label>
-      <input type="url" id="gasUrlInput" placeholder="Pega aquí la URL de tu Web App" />
-      <label style="font-size:12px;color:var(--muted);font-weight:700;">PIN de seguridad</label>
-      <input type="password" id="gasPinInput" placeholder="Ingresa tu PIN" value="" />
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="btn-primary" id="saveSyncBtn">💾 Guardar y Sincronizar</button>
-        <button class="btn btn-decline" id="disconnectSyncBtn">Desconectar</button>
+      <div class="modal-body">
+        <p style="margin:0;font-size:var(--fs-xs);color:var(--muted);">
+          El PIN se envía únicamente por <code>POST</code> (nunca en la URL). Elige quién usa este celular para identificar tus cambios y evitar choques.
+        </p>
+        <div>
+          <span class="label-xs">¿Quién usa este celular?</span>
+          <select id="gasEditorSelect">
+            <option value="Ale">👤 Ale</option>
+            <option value="Esposa">👩 Esposa</option>
+          </select>
+        </div>
+        <div>
+          <span class="label-xs">URL del Web App (Apps Script)</span>
+          <input type="url" id="gasUrlInput" placeholder="Pega aquí la URL de tu Web App" />
+        </div>
+        <div>
+          <span class="label-xs">PIN de seguridad</span>
+          <input type="password" id="gasPinInput" placeholder="Ingresa tu PIN" value="" />
+        </div>
+        <div>
+          <span class="label-xs">Upload Preset de Cloudinary (para subir desde cámara)</span>
+          <input type="text" id="cldPresetInput" placeholder="ej. laparrilla_unsigned" />
+        </div>
+        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v10)</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-decline" id="disconnectSyncBtn" type="button" style="flex:0 0 auto;">Desconectar</button>
+        <button class="btn-primary" id="saveSyncBtn" type="button">💾 Guardar y Sincronizar</button>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <script>
-    const APP_VERSION = "v9";
-    const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
-    const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
-    const DEFAULT_LIVE_STORY_PHOTO = "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg";
-    const WA_BASE = "https://wa.me/523330723340?text=";
-
-    const INITIAL_GALLERY = [
-      { id: "1", cat: "Burritos", desc: "Burrito de camarón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549726/dwwndaog2uqtspzguc8x.jpg" },
-      { id: "2", cat: "Promo_Flyer", desc: "Flyer Noche de Parrilla", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549728/kjgmbt8clkx9zzmkfpwq.jpg" },
-      { id: "3", cat: "Promo_Flyer", desc: "Story Parrilla Cenital", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549729/dpogosacyxs2zrqgbv23.jpg" },
-      { id: "4", cat: "Hamburguesas", desc: "Hamburguesa Doble", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg" },
-      { id: "5", cat: "Hamburguesas", desc: "Hamburguesa Hawaiana", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549731/hwclncghfq1rcwexnoeq.jpg" },
-      { id: "6", cat: "Tacos", desc: "Orden 3 Tacos", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549733/uhexz0z5dl7amgkj8ssg.jpg" },
-      { id: "7", cat: "Tacos", desc: "Story Gringas Parrilleras", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg" },
-      { id: "8", cat: "Hamburguesas", desc: "Hamburguesa Parrillera", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549735/oaivtu53xrfmcaosswa5.jpg" },
-      { id: "9", cat: "Local", desc: "Logo Oficial La Parrilla", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg" },
-      { id: "10", cat: "Promo_Flyer", desc: "Story Noches de Parrilla", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549737/ag53u4xmnirzs1zmvebu.jpg" },
-      { id: "11", cat: "Botanas", desc: "Boneless Búfalo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg" },
-      { id: "12", cat: "Hamburguesas", desc: "Pollo Crispy + Papas", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549740/hthkfxn3sojgfqjshyjp.jpg" },
-      { id: "13", cat: "Tacos", desc: "Tacos al Carbón HD", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549741/xmtrbteuvcivz84jgqw7.jpg" },
-      { id: "14", cat: "Menu", desc: "Menú Oficial Completo", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549742/tdfyo1hnfrdrffezkjhx.jpg" },
-      { id: "15", cat: "Canva", desc: "Canva: Jueves Burgers al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714992/laparrilla_canva/canva_jueves_burgers_carbon.jpg" },
-      { id: "16", cat: "Canva", desc: "Canva: Miércoles de Boneless", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg" },
-      { id: "17", cat: "Canva", desc: "Canva: Sábado de Parrillada", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg" },
-      { id: "18", cat: "Canva", desc: "Canva: Plantilla Historia 9:16", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg" },
-      { id: "19", cat: "Canva", desc: "Canva: Menú Mié–Jue", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715003/laparrilla_canva/canva_menu_mie_jue.jpg" },
-      { id: "20", cat: "Canva", desc: "Canva: Menú Vie–Dom", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715005/laparrilla_canva/canva_menu_vie_dom.jpg" },
-      { id: "21", cat: "Canva", desc: "Canva: Viernes Tacos al Carbón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg" },
-      { id: "22", cat: "Canva", desc: "Canva: Domingo Gringa Parrillera", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717433/laparrilla_canva/canva_domingo_gringa_parrillera.jpg" }
-    ];
-
-    function getTodayMx() {
-      try {
-        return new Intl.DateTimeFormat("en-CA", {
-          timeZone: "America/Mexico_City",
-          year: "numeric", month: "2-digit", day: "2-digit"
-        }).format(new Date());
-      } catch {
-        return new Date(Date.now() - 6 * 3600 * 1000).toISOString().slice(0, 10);
-      }
-    }
-
-    function getNowTimeMx() {
-      try {
-        return new Intl.DateTimeFormat("en-GB", {
-          timeZone: "America/Mexico_City",
-          hour: "2-digit", minute: "2-digit", hour12: false
-        }).format(new Date());
-      } catch {
-        return "19:30";
-      }
-    }
-
-    function getNextWeekDatesMx() {
-      const today = getTodayMx();
-      const [y, m, d] = today.split("-").map(Number);
-      const base = new Date(y, m - 1, d, 12, 0, 0);
-      const dow = base.getDay();
-      let daysToWed = (3 - dow + 7) % 7;
-      if (daysToWed === 0) daysToWed = 7;
-      const fmt = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-      return {
-        "Mié": fmt(new Date(base.getTime() + daysToWed * 86400000)),
-        "Jue": fmt(new Date(base.getTime() + (daysToWed + 1) * 86400000)),
-        "Vie": fmt(new Date(base.getTime() + (daysToWed + 2) * 86400000)),
-        "Sáb": fmt(new Date(base.getTime() + (daysToWed + 3) * 86400000)),
-        "Dom": fmt(new Date(base.getTime() + (daysToWed + 4) * 86400000))
-      };
-    }
-
-    const INITIAL_POSTS = [
-      {
-        id: 3, fecha: "2026-11-25", dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST", estado: "PUBLICADO", version: 1, editado_por: "",
-        copy: "🔥 ¡Mitad de semana se cura con unos boneless búfalo bien calientitos! Pásale hoy a La Parrilla por los tuyos, recién salidos y con todo el sabor. Te esperamos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río. Pide también para llevar por WhatsApp al 33 3072 3340. #LaParrilla #IxtlahuacanDelRio #Boneless",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg"
-      },
-      {
-        id: 4, fecha: "2026-11-26", dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST", estado: "APROBADO", version: 1, editado_por: "",
-        copy: "Llegó el gran debate de jueves en Ixtlahuacán del Río. ¿Eres del equipo Hamburguesa Doble con doble dosis de carne al carbón o prefieres el toque dulce de la Hawaiana con su piña asada? Deja en los comentarios tu favorita y etiqueta a la persona que te va a acompañar hoy por la suya. Te esperamos con el carbón encendido de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, colonia La Garita. #IxtlahuacanDelRio #LaParrilla #HamburguesasAlCarbon",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg"
-      },
-      {
-        id: 5, fecha: "2026-11-27", dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST", estado: "APROBADO", version: 1, editado_por: "",
-        copy: "🔥 ¡Ya es viernes y hoy prendemos el carbón con TODO nuestro menú completo! Ven por tus tacos al carbón, parrilladas para compartir, hamburguesas o gringas recién hechas. Te esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o haz tu pedido por WhatsApp al 33 3072 3340. #ViernesDeParrilla #IxtlahuacanDelRio #LaParrilla",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg"
-      },
-      {
-        id: 6, fecha: "2026-11-28", dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST", estado: "APROBADO", version: 1, editado_por: "",
-        copy: "El sábado se disfruta mejor en familia y con el auténtico sabor al carbón. Hoy tenemos lista la parrilla con nuestro menú completo: deliciosas parrilladas para compartir con arrachera, diezmillo, chorizo, quesadillas y tortillas recién hechas a mano, además de nuestros tradicionales tacos al carbón. Los esperamos hoy de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Colonia La Garita, en Ixtlahuacán del Río. Pedidos por WhatsApp al 33 3072 3340. #IxtlahuacanDelRio #LaParrilla #CenasIxtlahuacan",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg"
-      },
-      {
-        id: 7, fecha: "2026-11-29", dia: "Dom", hora: "19:30", red: "AMBAS", formato: "STORY", estado: "APROBADO", version: 1, editado_por: "",
-        copy: "🧀 Domingo de Gringa Parrillera con queso fundido al carbón. Pide la tuya hoy 👇",
-        foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg"
-      }
-    ];
-
-    function buildDefaultSuggestions() {
-      const nw = getNextWeekDatesMx();
-      return [
-        {
-          sid: "S1", titulo: "Miércoles · A: Boneless crujientes recién bañados",
-          fecha: nw["Mié"], dia: "Mié", hora: "18:00", red: "AMBAS", formato: "POST",
-          copy: "🔥 Escucha ese crujido: hoy toca cortar la semana con unos Boneless bien bañados en salsa y papas doraditas al momento. Ven a La Parrilla de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, Ixtlahuacán del Río, o haz tu pedido directo aquí 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20unos%20Boneless%20hoy #LaParrilla #IxtlahuacanDelRio #MiercolesDeBoneless",
-          copy_story: "🔥 Miércoles de Boneless crujientes. ¿Búfalo o Mango Habanero? Pide por WA 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714998/laparrilla_canva/canva_miercoles_boneless.jpg"
-        },
-        {
-          sid: "S2", titulo: "Miércoles · B: Encuesta rápida de salsas y papas",
-          fecha: nw["Mié"], dia: "Mié", hora: "18:30", red: "AMBAS", formato: "STORY",
-          copy: "🌶️ ¿Con qué salsa se disfrutan mejor tus boneless este miércoles: Búfalo clásico o Mango Habanero? Pide los tuyos calientitos con papas desde las 7:30 pm en 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20ordenar%20boneless%20y%20papas",
-          copy_story: "🌶️ ¿Qué salsa manda hoy en tus boneless? Vota aquí y pide desde las 7:30 pm 🔥",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549739/yasdg9jlqcwq7zrwi8j9.jpg"
-        },
-        {
-          sid: "S3", titulo: "Jueves · A: Burgers al carbón jugosas al momento",
-          fecha: nw["Jue"], dia: "Jue", hora: "18:00", red: "AMBAS", formato: "POST",
-          copy: "🍔 Carne jugosa sellada al carbón, queso derretido y pan suavecito recién salido de la parrilla. Hoy es Jueves de Burgers en Ixtlahuacán del Río y te esperamos de 7:30 pm a 11:30 pm en Col. La Garita (Filiberto Ruvalcaba Sánchez 503). ¿Prefieres Doble, Hawaiana o Parrillera? Pide directo por WhatsApp 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20una%20hamburguesa%20al%20carbon #JuevesDeBurgers #LaParrilla #IxtlahuacanDelRio",
-          copy_story: "🍔 Jueves de Burgers al carbón recién salidas. ¿Doble o Hawaiana? Pide hoy 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714992/laparrilla_canva/canva_jueves_burgers_carbon.jpg"
-        },
-        {
-          sid: "S4", titulo: "Jueves · B: Reto Burger + Pollo Crispy con papas",
-          fecha: nw["Jue"], dia: "Jue", hora: "18:30", red: "AMBAS", formato: "STORY",
-          copy: "🔥 Etiqueta a quien te debe una hamburguesa al carbón o una crispy de pollo con papas hoy jueves. Prendemos brasas de 7:30 pm a 11:30 pm. Pide para llevar en 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20hacer%20un%20pedido%20de%20burgers",
-          copy_story: "🔥 Huele a burger al carbón en La Garita. Etiqueta a quien te invita hoy por WA!",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549740/hthkfxn3sojgfqjshyjp.jpg"
-        },
-        {
-          sid: "S5", titulo: "Viernes · A: Viernes de Tacos al Carbón (menú completo)",
-          fecha: nw["Vie"], dia: "Vie", hora: "18:00", red: "AMBAS", formato: "POST",
-          copy: "🌮 ¡Arranca el fin de semana con el olor inconfundible del carbón encendido! Hoy viernes tenemos MENÚ COMPLETO en La Parrilla: tacos al carbón de arrachera, diezmillo y chorizo con tortillas calientitas, nopales asados y salsas de la casa. Te esperamos de 7:30 pm a 11:30 pm en Col. La Garita, Ixtlahuacán del Río, o pide ya 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20tacos%20al%20carbon #ViernesDeTacos #LaParrilla #IxtlahuacanDelRio",
-          copy_story: "🌮 ¡Viernes de menú completo! Tacos al carbón desde 7:30 pm. ¿Asada o adobada? 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717431/laparrilla_canva/canva_viernes_tacos_carbon.jpg"
-        },
-        {
-          sid: "S6", titulo: "Viernes · B: Ya prendimos las brasas (Historia en vivo)",
-          fecha: nw["Vie"], dia: "Vie", hora: "19:15", red: "AMBAS", formato: "STORY",
-          copy: "🔥 ¡El carbón ya está al rojo vivo en La Parrilla! Ven por tacos al carbón, gringas, parrilladas o hamburguesas desde las 7:30 pm. Pide aquí 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20hacer%20un%20pedido%20para%20hoy",
-          copy_story: "🔥 ¡Ya prendimos el carbón! Menú completo listo hoy en La Parrilla. Pide aquí 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795715001/laparrilla_canva/canva_story_marco_logo.jpg"
-        },
-        {
-          sid: "S7", titulo: "Sábado · A: Parrillada familiar al carbón para compartir",
-          fecha: nw["Sáb"], dia: "Sáb", hora: "18:00", red: "AMBAS", formato: "POST",
-          copy: "🥩 Sábado de reunir a la familia y armar la mesa en grande alrededor del sabor al carbón. Nuestra Parrillada llega humeante con arrachera, diezmillo, chorizo asado, quesadillas y tortillas hechas a mano al momento. Visítanos de 7:30 pm a 11:30 pm en Filiberto Ruvalcaba Sánchez 503, Col. La Garita, o aparta la tuya para llevar 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20una%20parrillada%20hoy #SabadoDeParrillada #LaParrilla #IxtlahuacanDelRio",
-          copy_story: "🥩 Sábado de Parrillada para compartir con tortillas a mano. Aparta por WhatsApp 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795714999/laparrilla_canva/canva_sabado_parrillada.jpg"
-        },
-        {
-          sid: "S8", titulo: "Sábado · B: Noche de parrilla con amigos en La Garita",
-          fecha: nw["Sáb"], dia: "Sáb", hora: "18:30", red: "AMBAS", formato: "STORY",
-          copy: "🔥 ¿Aún sin plan para cenar hoy sábado? Menú completo al carbón en La Parrilla de 7:30 pm a 11:30 pm. Pide directo a casa en 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20cenar%20con%20ustedes%20hoy",
-          copy_story: "🔥 ¿Sin plan hoy sábado? Arma la mesa en La Parrilla desde las 7:30 pm. ¡Ven!",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549729/dpogosacyxs2zrqgbv23.jpg"
-        },
-        {
-          sid: "S9", titulo: "Domingo · A: Cierre de semana con Gringa Parrillera",
-          fecha: nw["Dom"], dia: "Dom", hora: "18:00", red: "AMBAS", formato: "POST",
-          copy: "🧀 Nada cierra mejor el domingo que una Gringa Parrillera en tortilla de harina doradita, rebosante de queso fundido y carne recién salida de las brasas. Disfruta el último día de la semana sin encender la estufa: estamos de 7:30 pm a 11:30 pm en Col. La Garita, Ixtlahuacán del Río. Haz tu pedido en un toque 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20pedir%20una%20Gringa%20Parrillera #DomingoDeGringa #LaParrilla #IxtlahuacanDelRio",
-          copy_story: "🧀 Domingo de Gringa Parrillera con queso fundido al carbón. Pide la tuya hoy 👇",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795717433/laparrilla_canva/canva_domingo_gringa_parrillera.jpg"
-        },
-        {
-          sid: "S10", titulo: "Domingo · B: Domingo sin cocinar, pide por WhatsApp",
-          fecha: nw["Dom"], dia: "Dom", hora: "18:30", red: "AMBAS", formato: "STORY",
-          copy: "🙌 Hoy domingo descansa de la cocina: tacos al carbón, gringas, parrilladas y hamburguesas recién hechas de 7:30 pm a 11:30 pm. Pide en 👉 https://wa.me/523330723340?text=Hola%20La%20Parrilla%2C%20quiero%20hacer%20un%20pedido%20de%20domingo",
-          copy_story: "🙌 Hoy domingo no cocines: pide tacos, gringas o burgers por WhatsApp desde 7:30",
-          foto: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549734/zyguqxpumpwgycc1jjil.jpg"
-        }
-      ];
-    }
-
-    const KEYS = { posts: "lp_studio_posts_v2", sugs: "lp_studio_sugs_v4", sync: "lp_studio_sync_v2" };
-    let posts = loadJson(KEYS.posts, INITIAL_POSTS);
-    let suggestions = loadJson(KEYS.sugs, buildDefaultSuggestions());
-    let gallery = INITIAL_GALLERY.slice();
-    let metrics = [];
-    let errorLogs = [];
-    let syncCfg = loadJson(KEYS.sync, { url: "", pin: "", preset: "", editor: "Ale" });
-    if (!syncCfg.editor) syncCfg.editor = "Ale";
-    const aiVariantsByPost = {};
-
-    let currentFilter = "ALL";
-    let dayFilter = null;
-    let sugDayFilter = "Todos";
-    const previewMode = {};
-    const editorOpen = {};
-    const destState = {};
-    const sugInitialEstado = {};
-    const postStoryCopyDraft = {};
-    let galleryTargetPostId = null;
-    let galleryTargetSugId = null;
-    let galleryTargetNewPost = false;
-    let galleryTargetLiveShot = false;
-    let newPostEstado = "BORRADOR";
-    let newPostPhoto = INITIAL_GALLERY[3].url;
-    let liveShotEstado = "APROBADO";
-    let liveShotPhoto = DEFAULT_LIVE_STORY_PHOTO;
-    let galleryCropMode = "ORIG";
-    let galleryCatFilter = "Todas";
-    let lastSyncAt = 0;
-    let lastSyncOk = false;
-    let isSyncing = false;
-
-    function escapeHtml(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function safeCloudinaryUrl(url, fallback = FALLBACK_LOGO_URL) {
-      const s = String(url || "").trim();
-      if (s.startsWith(CLOUDINARY_PREFIX)) return s;
-      return fallback;
-    }
-
-    function normalizeRed(red) {
-      const r = String(red || "AMBAS").trim().toUpperCase();
-      if (r === "FACEBOOK" || r === "FB") return "FB";
-      if (r === "INSTAGRAM" || r === "IG") return "IG";
-      return "AMBAS";
-    }
-
-    function isErrorEstado(est) {
-      const e = String(est || "").toUpperCase();
-      return e === "ERROR" || e === "ERROR_IG" || e === "ERROR_FB" || e === "PARCIAL";
-    }
-
-    function hasForbiddenPriceWords(txt) {
-      return /\$|\bprecio(s)?\b|\bpesitos?\b|\b2\s*x\s*1\b|\bpromo\s+de\b/i.test(String(txt || ""));
-    }
-
-    function buildAutoStoryCopy(fullCopy) {
-      const clean = String(fullCopy || "").replace(/https?:\/\/\S+/g, "").replace(/#\S+/g, "").replace(/\s+/g, " ").trim();
-      if (!clean) return "🔥 ¡Hoy toca La Parrilla! Pide por WhatsApp o ven desde las 7:30 pm 👇";
-      if (clean.length <= 90) return clean;
-      return clean.slice(0, 74).trim() + "… Pide por WA 👇";
-    }
-
-    function getDefaultDest(formato, red) {
-      const r = normalizeRed(red);
-      const isP = String(formato || "POST").toUpperCase() === "POST";
-      const isS = String(formato || "").toUpperCase() === "STORY";
-      return {
-        postFb: isP && r !== "IG",
-        postIg: isP && r !== "FB",
-        storyFb: isS && r !== "IG",
-        storyIg: isS && r !== "FB"
-      };
-    }
-
-    function getDest(key, formato, red) {
-      if (!destState[key]) destState[key] = getDefaultDest(formato, red);
-      return destState[key];
-    }
-
-    function groupDestinations(d) {
-      const groups = [];
-      if (d.postFb || d.postIg) {
-        groups.push({ formato: "POST", red: (d.postFb && d.postIg) ? "AMBAS" : (d.postFb ? "FB" : "IG") });
-      }
-      if (d.storyFb || d.storyIg) {
-        groups.push({ formato: "STORY", red: (d.storyFb && d.storyIg) ? "AMBAS" : (d.storyFb ? "FB" : "IG") });
-      }
-      return groups;
-    }
-
-    function renderDestSelector(key, d) {
-      const groups = groupDestinations(d);
-      const hasBoth = groups.length > 1;
-      const summary = groups.length
-        ? "Se guardará en Sheets como: " + groups.map(g => `${g.formato} (${g.red})`).join(" + ") + (hasBoth ? " · Post 4:5 + Historia 9:16" : "")
-        : "⚠️ Selecciona al menos 1 destino";
-      return `
-        <div class="dest-box" data-dest-key="${escapeHtml(key)}">
-          <div style="font-size:11.5px;font-weight:800;color:var(--text);">📲 Destinos de publicación:</div>
-          <div class="dest-shortcuts">
-            <button type="button" class="dest-shortcut-btn" data-shortcut="ALL">✨ Todo (Post 4:5 + Historias 9:16)</button>
-            <button type="button" class="dest-shortcut-btn" data-shortcut="POSTS">📰 Solo Posts (FB + IG)</button>
-            <button type="button" class="dest-shortcut-btn" data-shortcut="STORIES">📱 Solo Historias (FB + IG)</button>
-          </div>
-          <div class="dest-grid">
-            <label class="dest-chip ${d.postFb ? "checked" : ""}">
-              <input type="checkbox" data-dest-field="postFb" ${d.postFb ? "checked" : ""} /> Post Facebook
-            </label>
-            <label class="dest-chip ${d.postIg ? "checked" : ""}">
-              <input type="checkbox" data-dest-field="postIg" ${d.postIg ? "checked" : ""} /> Post Instagram
-            </label>
-            <label class="dest-chip ${d.storyFb ? "checked" : ""}">
-              <input type="checkbox" data-dest-field="storyFb" ${d.storyFb ? "checked" : ""} /> Historia Facebook
-            </label>
-            <label class="dest-chip ${d.storyIg ? "checked" : ""}">
-              <input type="checkbox" data-dest-field="storyIg" ${d.storyIg ? "checked" : ""} /> Historia Instagram
-            </label>
-          </div>
-          <div class="dest-summary">${escapeHtml(summary)}</div>
-        </div>`;
-    }
-
-    function loadJson(k, fallback) {
-      try { const r = localStorage.getItem(k); if (r) return JSON.parse(r); } catch {}
-      return JSON.parse(JSON.stringify(fallback));
-    }
-
-    function saveLocal() {
-      try {
-        localStorage.setItem(KEYS.posts, JSON.stringify(posts));
-        localStorage.setItem(KEYS.sugs, JSON.stringify(suggestions));
-        localStorage.setItem(KEYS.sync, JSON.stringify(syncCfg));
-      } catch {}
-    }
-
-    function showToast(msg) {
-      const el = document.getElementById("toast");
-      el.textContent = String(msg || "");
-      el.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove("show"), 2800);
-    }
-
-    function getDiaFromFecha(fechaStr) {
-      const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-      const m = String(fechaStr || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (!m) return "";
-      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-      return days[d.getDay()] || "";
-    }
-
-    function applyCloudinaryTransform(url, cropMode) {
-      const safe = safeCloudinaryUrl(url, "");
-      if (!safe) return "";
-      const clean = safe.replace(/\/image\/upload\/(?:[^/]+,[^/]+\/)?/, "/image/upload/");
-      if (cropMode === "FEED") return clean.replace("/image/upload/", "/image/upload/c_fill,g_auto,ar_4:5,w_1080,q_auto,f_auto/");
-      if (cropMode === "STORY") return clean.replace("/image/upload/", "/image/upload/c_fill,g_auto,ar_9:16,w_1080,h_1920,q_auto,f_auto/");
-      return clean;
-    }
-
-    function checkGuardrails(post) {
-      const issues = [];
-      const dia = post.dia || getDiaFromFecha(post.fecha);
-      const txt = String(post.copy || "");
-      if ((dia === "Mié" || dia === "Jue") && /\b(tacos?|gringas?|burritos?|quesadillas?|volc[aá]n|parrilladas?)\b/i.test(txt)) {
-        issues.push(`Regla Mié–Jue: evita mencionar tacos, gringas, burritos o parrilladas en ${dia}.`);
-      }
-      if (hasForbiddenPriceWords(txt)) {
-        issues.push("BLOQUEADO por marca: quita $, 'precio', 'pesitos', '2x1' o 'promo de' para poder aprobar.");
-      }
-      if (post.formato === "STORY" && txt.length > 90) {
-        issues.push(`Tip STORY: ideal ≤ 90 caracteres (actual: ${txt.length}).`);
-      }
-      if (!String(post.foto || "").startsWith(CLOUDINARY_PREFIX)) {
-        issues.push("BLOQUEADO: URL_Media debe pertenecer a Cloudinary oficial (sgn99usk).");
-      }
-      if (isErrorEstado(post.estado)) {
-        const motivo = post.nota_error ? `: ${post.nota_error}` : "";
-        issues.push(`Error de publicación (${post.estado})${motivo}`);
-      }
-      return issues;
-    }
-
-    async function validateBeforeApprove(post) {
-      if (!String(post.copy || "").trim()) return { ok: false, error: "Falta Copy_Final antes de aprobar" };
-      if (!String(post.fecha || "").trim()) return { ok: false, error: "Falta Fecha antes de aprobar" };
-      if (!String(post.hora || "").trim()) return { ok: false, error: "Falta Hora antes de aprobar" };
-      if (!String(post.red || "AMBAS").trim()) return { ok: false, error: "Falta Red antes de aprobar" };
-      if (!String(post.formato || "").trim()) return { ok: false, error: "Falta Formato antes de aprobar" };
-      if (hasForbiddenPriceWords(post.copy)) {
-        return { ok: false, error: "Aprobación bloqueada: no se permite $, 'precio', 'pesitos', '2x1' ni 'promo de'." };
-      }
-      const imgUrl = String(post.foto || "").trim();
-      if (!imgUrl.startsWith(CLOUDINARY_PREFIX)) {
-        return { ok: false, error: "URL_Media debe iniciar con https://res.cloudinary.com/sgn99usk/" };
-      }
-      try {
-        let res = await fetch(imgUrl, { method: "HEAD" });
-        if (!res.ok) res = await fetch(imgUrl, { method: "GET" });
-        if (!res.ok) return { ok: false, error: `La imagen respondió HTTP ${res.status}` };
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
-        if (ct && !ct.startsWith("image/")) return { ok: false, error: `URL_Media no es imagen (${ct})` };
-        return { ok: true };
-      } catch {
-        return { ok: false, error: "No se pudo verificar que URL_Media sea accesible (HTTP 200)" };
-      }
-    }
-
-    function resolveEffectiveEstado(r) {
-      const est = String(r.Estado || "BORRADOR").toUpperCase();
-      const red = normalizeRed(r.Red || "AMBAS");
-      const hasFb = !!String(r.ID_FB || "").trim();
-      const hasIg = !!String(r.ID_IG || "").trim();
-      if (est === "PUBLICADO" && red === "AMBAS") {
-        if (hasFb && !hasIg) return "ERROR_IG";
-        if (!hasFb && hasIg) return "ERROR_FB";
-        if (!hasFb && !hasIg) return "PARCIAL";
-      }
-      return est;
-    }
-
-    function formatHora(val) {
-      const s = String(val || "").trim();
-      if (!s) return "18:00";
-      if (/^\d{1,2}:\d{2}/.test(s)) return s.slice(0, 5);
-      const d = new Date(s);
-      if (!isNaN(d.getTime())) {
-        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      }
-      return "18:00";
-    }
-
-    function mapSheetPostRow(r) {
-      const fechaClean = String(r.Fecha || "").slice(0, 10);
-      return {
-        id: Number(r.ID),
-        fecha: fechaClean,
-        dia: getDiaFromFecha(fechaClean),
-        hora: formatHora(r.Hora),
-        red: normalizeRed(r.Red || "AMBAS"),
-        formato: String(r.Formato || "POST").toUpperCase(),
-        estado: resolveEffectiveEstado(r),
-        copy: String(r.Copy_Final || ""),
-        foto: safeCloudinaryUrl(r.URL_Media, ""),
-        id_fb: String(r.ID_FB || ""),
-        id_ig: String(r.ID_IG || ""),
-        nota_error: String(r.Nota_Error || ""),
-        fecha_pub_real: String(r.Fecha_Publicacion_Real || ""),
-        version: Math.max(1, Number(r.Version) || 1),
-        editado_por: String(r.Editado_Por || "")
-      };
-    }
-
-    function updateSyncPillLabel() {
-      const pill = document.getElementById("syncPill");
-      if (!pill) return;
-      if (!syncCfg.url) {
-        pill.textContent = "⚙️ Conectar";
-        pill.classList.remove("live", "offline");
-        return;
-      }
-      if (!navigator.onLine || (lastSyncAt > 0 && !lastSyncOk)) {
-        pill.textContent = "⚠️ sin conexión";
-        pill.classList.remove("live");
-        pill.classList.add("offline");
-        return;
-      }
-      if (!lastSyncAt) {
-        pill.textContent = `☁️ ${syncCfg.editor || "Ale"}`;
-        pill.classList.add("live");
-        pill.classList.remove("offline");
-        return;
-      }
-      const mins = Math.floor((Date.now() - lastSyncAt) / 60000);
-      pill.textContent = mins < 1 ? `✓ recién (${syncCfg.editor || "Ale"})` : `✓ hace ${mins} min`;
-      pill.classList.add("live");
-      pill.classList.remove("offline");
-    }
-
-    async function pushToSheets(payload) {
-      if (!syncCfg.url) return { ok: false, offline: true };
-      try {
-        const res = await fetch(syncCfg.url, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ pin: syncCfg.pin, editor: syncCfg.editor || "Ale", ...payload })
-        });
-        const data = await res.json();
-        return data && typeof data === "object" ? data : { ok: false, error: "Respuesta inválida del servidor" };
-      } catch {
-        lastSyncOk = false;
-        updateSyncPillLabel();
-        return { ok: false, error: "Sin conexión con Google Apps Script" };
-      }
-    }
-
-    async function syncFromSheets(silent = false) {
-      if (!syncCfg.url || isSyncing) return;
-      isSyncing = true;
-      try {
-        const data = await pushToSheets({ action: "getAll" });
-        if (!data || !data.ok) {
-          lastSyncOk = false;
-          updateSyncPillLabel();
-          if (!silent) showToast("⚠️ " + (data?.error || "Error al sincronizar con Sheets"));
-          return;
-        }
-        lastSyncAt = Date.now();
-        lastSyncOk = true;
-
-        if (Array.isArray(data.publicaciones) && data.publicaciones.length) {
-          posts = data.publicaciones
-            .filter(r => Number(r.ID) >= 3)
-            .map(mapSheetPostRow);
-        }
-        if (Array.isArray(data.galeria) && data.galeria.length) {
-          const mapped = data.galeria
-            .filter(g => String(g.URL_Cloudinary || "").startsWith(CLOUDINARY_PREFIX))
-            .map(g => ({
-              id: String(g.ID_Foto || ""),
-              cat: String(g.Categoria || "Otros"),
-              desc: String(g.Nombre_Archivo || g.Categoria || "Imagen"),
-              url: String(g.URL_Cloudinary)
-            }));
-          if (mapped.length) gallery = mapped;
-        }
-        if (Array.isArray(data.sugerencias) && data.sugerencias.length) {
-          const nw = getNextWeekDatesMx();
-          suggestions = data.sugerencias
-            .filter(s => String(s.Estado_Sug || "PENDIENTE").toUpperCase() === "PENDIENTE")
-            .map(s => ({
-              sid: String(s.ID_Sug || ""),
-              titulo: String(s.Titulo || ""),
-              fecha: String(s.Fecha_Dinamica || nw[s.Dia] || nw["Mié"]).slice(0, 10),
-              dia: String(s.Dia || "Mié"),
-              hora: formatHora(s.Hora),
-              red: normalizeRed(s.Red || "AMBAS"),
-              formato: String(s.Formato || "POST").toUpperCase(),
-              copy: String(s.Copy_Final || ""),
-              copy_story: String(s.Copy_Story || buildAutoStoryCopy(s.Copy_Final || "")),
-              foto: safeCloudinaryUrl(s.URL_Media, FALLBACK_LOGO_URL)
-            }));
-        }
-        if (Array.isArray(data.metricas)) metrics = data.metricas;
-        if (Array.isArray(data.errores)) errorLogs = data.errores;
-        saveLocal();
-        render();
-        if (!silent) showToast("☁️ Sincronizado con Google Sheets");
-      } finally {
-        isSyncing = false;
-        updateSyncPillLabel();
-      }
-    }
-
-    function maybeAutoSync() {
-      if (!syncCfg.url || !navigator.onLine) return;
-      if (Date.now() - lastSyncAt >= 60000) {
-        syncFromSheets(true);
-      }
-    }
-
-    function handleConflictFromServer(post, res, allowForceCallback) {
-      if (res && res.actual) {
-        const updated = mapSheetPostRow(res.actual);
-        const idx = posts.findIndex(p => p.id === post.id);
-        if (idx >= 0) posts[idx] = updated;
-        saveLocal();
-        render();
-      }
-      const who = (res && res.actual && res.actual.Editado_Por) ? res.actual.Editado_Por : "El otro celular";
-      const msg = `⚠️ Conflicto en ID ${post.id}: ${who} guardó una versión más reciente (v${res?.actual?.Version || "?"}).\n\nYa cargamos los datos recientes para no sobrescribir sus cambios.`;
-      if (allowForceCallback) {
-        if (confirm(msg + "\n\n¿Deseas FORZAR y sobrescribir con tus cambios de todas formas?")) {
-          allowForceCallback();
-        }
-      } else {
-        alert(msg);
-      }
-    }
-
-    function renderWeekStrip() {
-      const days = ["Mié", "Jue", "Vie", "Sáb", "Dom"];
-      const strip = document.getElementById("weekStrip");
-      strip.innerHTML = days.map(d => {
-        const dayPosts = posts.filter(p => p.estado !== "CANCELADO" && (p.dia || getDiaFromFecha(p.fecha)) === d);
-        const dots = dayPosts.map(p => {
-          const cls = isErrorEstado(p.estado)
-            ? "error"
-            : (p.estado === "PUBLICADO" ? "published" : (p.estado === "APROBADO" ? "approved" : "draft"));
-          return `<span class="dot ${cls}" title="${escapeHtml(p.estado)}"></span>`;
-        }).join("");
-        return `
-          <button class="day-pill ${dayFilter === d ? "active" : ""}" data-day="${escapeHtml(d)}">
-            <span>${escapeHtml(d)}</span>
-            <div class="day-dots">${dots}</div>
-          </button>`;
-      }).join("");
-    }
-
-    function renderMockup(post, mode) {
-      const safeCopy = escapeHtml(mode === "STORY" && post.copy_story ? post.copy_story : post.copy);
-      const safeFoto = escapeHtml(safeCloudinaryUrl(post.foto, FALLBACK_LOGO_URL));
-      const safeHora = escapeHtml(post.hora || "18:00");
-      const fechaLabel = escapeHtml(`${post.fecha || ""}${post.dia ? " " + post.dia : ""}`);
-      if (mode === "STORY") {
-        return `
-          <div class="story-frame">
-            <img src="${safeFoto}" alt="La Parrilla ID ${escapeHtml(post.id)}" loading="lazy" />
-            <div class="story-top">
-              <div class="story-bars"><div></div></div>
-              <div class="story-user-row">
-                <div class="avatar-ring" style="width:28px;height:28px;"><div class="avatar-inner" style="font-size:12px;">🔥</div></div>
-                <div>laparrilla_ixtla · ${safeHora}<small>📍 Ixtlahuacán del Río, Jalisco</small></div>
-              </div>
-            </div>
-            <div class="story-caption-overlay">${safeCopy}</div>
-          </div>`;
-      }
-      if (mode === "FB") {
-        return `
-          <div class="phone-frame fb">
-            <div class="social-header">
-              <div class="avatar-ring"><div class="avatar-inner">🔥</div></div>
-              <div class="social-user">
-                <strong>La Parrilla (Ixtlahuacán del Río)</strong>
-                <span>${fechaLabel} · ${safeHora} · 📍 Ixtlahuacán del Río, Jalisco</span>
-              </div>
-            </div>
-            <div class="fb-text">${safeCopy}</div>
-            <div class="media-box"><img src="${safeFoto}" alt="La Parrilla ID ${escapeHtml(post.id)}" loading="lazy" /></div>
-            <div class="ig-actions" style="font-size:12.5px;color:#4b5563;padding:9px 14px;border-top:1px solid #e5e7eb;">
-              <span>👍 Me gusta</span><span>💬 Comentar</span><span>↗️ Compartir</span>
-            </div>
-          </div>`;
-      }
-      return `
-        <div class="phone-frame">
-          <div class="social-header">
-            <div class="avatar-ring"><div class="avatar-inner">🔥</div></div>
-            <div class="social-user">
-              <strong>laparrilla_ixtla</strong>
-              <span>📍 Ixtlahuacán del Río, Jalisco</span>
-            </div>
-          </div>
-          <div class="media-box"><img src="${safeFoto}" alt="La Parrilla ID ${escapeHtml(post.id)}" loading="lazy" /></div>
-          <div class="ig-actions"><span>❤️ 💬 ✈️</span><span>🔖</span></div>
-          <div class="ig-caption"><strong>laparrilla_ixtla</strong> ${safeCopy}</div>
-        </div>`;
-    }
-
-    function renderPulse() {
-      const approved = posts.filter(p => p.estado === "APROBADO").length;
-      const drafts = posts.filter(p => p.estado === "BORRADOR").length;
-      const published = posts.filter(p => p.estado === "PUBLICADO").length;
-      const errs = posts.filter(p => isErrorEstado(p.estado)).length;
-      const totalReach = metrics.reduce((acc, m) => acc + (Number(m.Alcance) || 0), 0);
-      const totalInt = metrics.reduce((acc, m) => acc + (Number(m.Interacciones) || 0), 0);
-      const waTestUrl = WA_BASE + encodeURIComponent("Hola La Parrilla, vi su publicación y quiero hacer un pedido para hoy 🔥");
-      const metricsList = metrics.length
-        ? metrics.slice(-5).reverse().map(m => `
-            <div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;">
-              <strong>ID ${escapeHtml(m.ID_Publicacion)} · ${escapeHtml(m.Red)} (${escapeHtml(m.Dia_Semana)} ${escapeHtml(m.Hora_Publicacion)})</strong><br>
-              <span style="color:var(--muted);">Alcance: ${escapeHtml(m.Alcance || "0")} · Interacciones: ${escapeHtml(m.Interacciones || "0")} · Clics: ${escapeHtml(m.Clics_o_Mensajes || "0")}</span>
-            </div>`).join("")
-        : `<p style="margin:0;font-size:12.5px;color:var(--muted);">Aún no hay cortes en <code>Metricas_y_Horarios</code>. Conforme se publiquen tus posts, aquí verás el histórico de alcance e interacciones.</p>`;
-
-      return `
-        <div class="kpi-grid">
-          <div class="kpi-card"><small>Borradores</small><strong style="color:var(--amber);">${drafts}</strong></div>
-          <div class="kpi-card"><small>Aprobadas listas</small><strong style="color:var(--green);">${approved}</strong></div>
-          <div class="kpi-card"><small>Publicadas</small><strong style="color:var(--blue);">${published}</strong></div>
-          <div class="kpi-card"><small>Errores / Alcance</small><strong style="color:${errs ? "var(--red)" : "#fff"};">${errs} err · ${totalReach}/${totalInt}</strong></div>
+  <!-- Modal: 🩺 Diagnóstico del Sistema (v10) -->
+  <div class="modal-backdrop" id="healthModal">
+    <div class="modal-sheet">
+      <div class="modal-drag"></div>
+      <div class="modal-head">
+        <h2>🩺 Diagnóstico (v10)</h2>
+        <button class="btn" id="closeHealthBtn" type="button">✖</button>
+      </div>
+      <div class="modal-body">
+        <div id="healthResults" style="display:flex;flex-direction:column;gap:8px;font-size:var(--fs-sm);"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn-primary" id="recheckHealthBtn" type="button">🔄 Probar</button>
+          <button class="btn" id="forceReloadBtn" type="button">🧹 Recarga limpia</button>
         </div>
-        <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-          <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de Meta, WhatsApp y Avisos</h3>
-          <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque tu motor directo FB/IG, tu enlace de pedidos y alertas por Telegram.</p>
-          <button class="btn" data-action="test-meta" style="border-color:var(--accent);color:#fdba74;">🔗 Probar conexión Meta FB/IG (solo lectura)</button>
-          <a class="btn btn-wa" href="${escapeHtml(waTestUrl)}" target="_blank" rel="noopener">💬 Abrir enlace de prueba en WhatsApp</a>
-          <a class="btn" href="https://www.facebook.com/La-Parrilla-106299351752487" target="_blank" rel="noopener" style="border-color:#1877f2;color:#93c5fd;">🚀 Abrir Página FB para compartir en grupos</a>
-          <button class="btn" data-action="test-telegram" style="border-color:#38bdf8;color:#7dd3fc;">📲 Probar aviso por Telegram</button>
+        <div style="padding:10px 12px;border-radius:12px;background:#1f1414;border:1px solid rgba(239,68,68,0.35);display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:var(--fs-xs);color:#fca5a5;font-weight:700;">⚠️ Zona avanzada</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn btn-decline" id="resetBtn" type="button">↺ Demo local</button>
+            <button class="btn" id="resetSugsBtn" type="button">💡 Ideas</button>
+          </div>
         </div>
-        <div class="card" style="padding:14px;">
-          <h3 style="margin:0 0 8px;font-size:15px;">🚨 Registro de errores (Log_Errores)</h3>
-          ${errorLogs.length ? errorLogs.slice(-5).reverse().map(e => `
-            <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
-              <strong>${escapeHtml(e.Fecha_Hora)} · ${escapeHtml(e.Origen)} (ID ${escapeHtml(e.ID_Publicacion || "-")})</strong><br>
-              <span style="color:#fca5a5;">${escapeHtml(e.Detalle_Error)}</span>
-            </div>`).join("") : `<p style="margin:0;font-size:12.5px;color:#86efac;">✅ Sin errores registrados en Log_Errores.</p>`}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: ⚠️ Conflicto lado a lado entre celulares -->
+  <div class="modal-backdrop" id="conflictModal">
+    <div class="modal-sheet">
+      <div class="modal-drag"></div>
+      <div class="modal-head">
+        <h2 id="conflictTitle">⚠️ Conflicto de edición</h2>
+        <button class="btn" id="closeConflictBtn" type="button">✖</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0;font-size:var(--fs-xs);color:var(--muted);" id="conflictSubtitle"></p>
+        <div class="conflict-grid">
+          <div class="conflict-col">
+            <strong id="conflictLocalLabel">Tu versión</strong>
+            <div class="conflict-text" id="conflictLocalText"></div>
+          </div>
+          <div class="conflict-col" style="border-color:var(--accent);">
+            <strong id="conflictRemoteLabel">Versión en Sheets</strong>
+            <div class="conflict-text" id="conflictRemoteText"></div>
+          </div>
         </div>
-        <div class="card" style="padding:14px;">
-          <h3 style="margin:0 0 8px;font-size:15px;">📈 Últimos cortes (Metricas_y_Horarios)</h3>
-          ${metricsList}
-        </div>`;
-    }
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="conflictKeepRemoteBtn" type="button">📥 Usar la de Sheets</button>
+        <button class="btn-primary" id="conflictForceLocalBtn" type="button">⚡ Guardar la mía</button>
+      </div>
+    </div>
+  </div>
 
-    function render() {
-      updateSyncPillLabel();
+  <!-- Modal: Vista previa en pantalla completa -->
+  <div class="modal-backdrop" id="fullscreenModal" style="align-items:center;">
+    <div class="modal-sheet" style="max-height:94dvh;background:#0d0b0a;">
+      <div class="modal-head">
+        <h2 id="fullscreenTitle">Vista previa</h2>
+        <button class="btn" id="closeFullscreenBtn" type="button">✖</button>
+      </div>
+      <div class="modal-body" id="fullscreenBody" style="align-items:center;justify-content:center;padding:var(--sp-3);"></div>
+    </div>
+  </div>
 
-      const activePosts = posts.filter(p => p.estado !== "CANCELADO");
-      const approvedCount = activePosts.filter(p => p.estado === "APROBADO").length;
-      const draftCount = activePosts.filter(p => p.estado === "BORRADOR").length;
-      const publishedCount = activePosts.filter(p => p.estado === "PUBLICADO").length;
-      const errorCount = activePosts.filter(p => isErrorEstado(p.estado)).length;
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastMsg"></span>
+    <button type="button" class="toast-action" id="toastActionBtn" style="display:none;"></button>
+    <button type="button" class="toast-close" id="toastCloseBtn" aria-label="Cerrar">×</button>
+  </div>
 
-      document.getElementById("tabAll").textContent = `Todas (${activePosts.length})`;
-      document.getElementById("tabDraft").textContent = `Borradores (${draftCount})`;
-      document.getElementById("tabApproved").textContent = `Aprobadas (${approvedCount})`;
-      document.getElementById("tabPublished").textContent = `Publicadas (${publishedCount})`;
-      const errTab = document.getElementById("tabErrors");
-      errTab.textContent = `Errores (${errorCount})`;
-      errTab.classList.toggle("has-errors", errorCount > 0);
-      document.getElementById("tabSug").textContent = `💡 Sugerencias (${suggestions.length})`;
-      renderWeekStrip();
-
-      const feed = document.getElementById("feed");
-
-      if (currentFilter === "PULSE") {
-        feed.innerHTML = renderPulse();
-        return;
-      }
-
-      if (currentFilter === "SUGGESTIONS") {
-        const sugDays = ["Todos", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-        const sugBar = `
-          <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;">
-            ${sugDays.map(d => `<button class="filter-btn ${sugDayFilter === d ? "active" : ""}" data-sug-day="${escapeHtml(d)}">${escapeHtml(d)}</button>`).join("")}
-          </div>`;
-        const filteredSugs = suggestions.filter(s => sugDayFilter === "Todos" || s.dia === sugDayFilter);
-        if (!filteredSugs.length) {
-          feed.innerHTML = sugBar + `
-            <div class="card" style="padding:24px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:center;">
-              <div>No hay sugerencias pendientes${sugDayFilter !== "Todos" ? " para " + escapeHtml(sugDayFilter) : ""}.</div>
-              <button class="btn" data-action="restore-sugs-inline">💡 Reactivar banco de sugerencias</button>
-            </div>`;
-          return;
-        }
-        feed.innerHTML = sugBar + filteredSugs.map(sug => {
-          const mode = previewMode[sug.sid] || (sug.formato === "STORY" ? "STORY" : "IG");
-          const dest = getDest("S_" + sug.sid, sug.formato, sug.red);
-          const initEst = sugInitialEstado[sug.sid] || "BORRADOR";
-          const storyText = sug.copy_story || buildAutoStoryCopy(sug.copy);
-          return `
-            <article class="card" data-sid="${escapeHtml(sug.sid)}">
-              <div class="card-top">
-                <div class="meta-left">
-                  <span class="id-chip">IDEA ${escapeHtml(sug.sid)}</span>
-                  <span class="date-label">${escapeHtml(sug.fecha)} ${escapeHtml(sug.dia)} · ${escapeHtml(sug.hora)}</span>
-                  <span class="format-chip">${escapeHtml(sug.red)} · ${escapeHtml(sug.formato)}</span>
-                </div>
-                <span class="status-badge draft">COMPARTIDA</span>
-              </div>
-              <div class="sug-title">${escapeHtml(sug.titulo)}</div>
-              <div class="mode-tabs">
-                <button class="mode-btn ${mode === "IG" ? "active" : ""}" data-mode="IG">Instagram Post</button>
-                <button class="mode-btn ${mode === "STORY" ? "active" : ""}" data-mode="STORY">Historia 9:16</button>
-                <button class="mode-btn ${mode === "FB" ? "active" : ""}" data-mode="FB">Facebook Post</button>
-              </div>
-              <div class="preview-stage">${renderMockup({ id: sug.sid, fecha: sug.fecha, dia: sug.dia, hora: sug.hora, copy: sug.copy, copy_story: storyText, foto: sug.foto }, mode)}</div>
-              <div style="padding:10px 14px;background:#15110e;border-top:1px solid var(--border);">
-                <div class="story-copy-box">
-                  <div class="story-copy-head">
-                    <span>📱 Copy_Story para Historia 9:16 (máx. 90):</span>
-                    <span>${storyText.length}/90</span>
-                  </div>
-                  <input type="text" maxlength="90" data-sug-story="${escapeHtml(sug.sid)}" value="${escapeHtml(storyText)}" />
-                </div>
-              </div>
-              ${renderDestSelector("S_" + sug.sid, dest)}
-              <div style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:#16120f;border-top:1px solid var(--border);font-size:12px;">
-                <span style="color:var(--muted);font-weight:700;">Estado al programar:</span>
-                <button type="button" class="filter-btn ${initEst === "APROBADO" ? "active" : ""}" data-action="toggle-sug-estado">${escapeHtml(initEst)}</button>
-              </div>
-              <div class="sug-actions">
-                <button class="btn btn-approve" data-action="accept-sug">✓ Aceptar</button>
-                <button class="btn" data-action="open-gallery-sug">🖼️ Foto</button>
-                <button class="btn btn-decline" data-action="decline-sug">✕ Declinar</button>
-              </div>
-            </article>`;
-        }).join("");
-        return;
-      }
-
-      const visible = activePosts.filter(p => {
-        const matchTab = currentFilter === "ALL"
-          ? true
-          : currentFilter === "ERRORES"
-            ? isErrorEstado(p.estado)
-            : p.estado === currentFilter;
-        const matchDay = !dayFilter || (p.dia || getDiaFromFecha(p.fecha)) === dayFilter;
-        return matchTab && matchDay;
-      });
-
-      if (!visible.length) {
-        feed.innerHTML = `<div class="card" style="padding:28px;text-align:center;color:var(--muted);">No hay publicaciones para este filtro${dayFilter ? " en " + escapeHtml(dayFilter) : ""}.</div>`;
-        return;
-      }
-
-      feed.innerHTML = visible.map(post => {
-        const mode = previewMode[post.id] || (post.formato === "STORY" ? "STORY" : "IG");
-        const isApproved = post.estado === "APROBADO";
-        const isPublished = post.estado === "PUBLICADO";
-        const isError = isErrorEstado(post.estado);
-        const isEditing = !!editorOpen[post.id];
-        const issues = checkGuardrails(post);
-        const badgeCls = isError ? "error" : (isPublished ? "published" : (isApproved ? "approved" : "draft"));
-        const cardCls = isError ? "error" : (isPublished ? "published" : (isApproved ? "approved" : ""));
-        const diaLabel = post.dia || getDiaFromFecha(post.fecha);
-        const curDest = getDest("P_" + post.id, post.formato, post.red || "AMBAS");
-        const curGroups = groupDestinations(curDest);
-        const storyDraft = postStoryCopyDraft[post.id] !== undefined ? postStoryCopyDraft[post.id] : buildAutoStoryCopy(post.copy);
-
-        const storyKitHtml = post.formato === "STORY" ? `
-          <div class="story-kit">
-            <div class="story-kit-hint">🎯 <strong>Kit Historia 9:16:</strong> agrega sticker 📍 <em>La Parrilla</em> + 📊 <em>Encuesta</em> o 🔗 <em>WhatsApp</em>.</div>
-            <div class="story-kit-btns">
-              <button class="btn" data-action="story-kit">📥 Foto + Copiar texto</button>
-              <button class="btn btn-approve ${isPublished ? "is-approved" : ""}" data-action="mark-published">${isPublished ? "↩ Desmarcar" : "✅ Historia subida"}</button>
-            </div>
-          </div>` : "";
-
-        const shareGroupsHtml = isPublished ? `
-          <div style="padding:10px 14px;background:#161310;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span style="font-size:12px;color:#93c5fd;font-weight:700;">${post.fecha_pub_real ? `✅ Publicado el ${escapeHtml(post.fecha_pub_real)}` : "🚀 Multiplica alcance en Ixtlahuacán:"}</span>
-            <button class="btn" data-action="share-fb-groups" style="border-color:#1877f2;color:#93c5fd;">Compartir en grupos</button>
-          </div>` : "";
-
-        const retryLabel = post.estado === "ERROR_FB" ? "solo FB" : (post.estado === "ERROR_IG" ? "solo IG" : "publicación");
-        const retryErrorHtml = isError ? `
-          <div style="padding:10px 14px;background:rgba(239,68,68,0.12);border-top:1px solid rgba(239,68,68,0.4);display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-size:12px;color:#fca5a5;font-weight:800;">⚠️ Estado: ${escapeHtml(post.estado)}</span>
-              <button class="btn" data-action="retry-missing" style="border-color:#ef4444;color:#fecaca;">🔄 Reintentar ${escapeHtml(retryLabel)}</button>
-            </div>
-            ${post.nota_error ? `<div style="font-size:11.5px;color:#fecaca;background:rgba(0,0,0,0.28);padding:7px 9px;border-radius:8px;word-break:break-word;"><strong>Motivo:</strong> ${escapeHtml(post.nota_error)}</div>` : ""}
-          </div>` : "";
-
-        const aiVars = aiVariantsByPost[post.id] || [];
-        const aiVarsHtml = aiVars.length ? `
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            ${aiVars.map((v, idx) => `<button type="button" class="btn" data-apply-ai="${idx}" style="text-align:left;justify-content:flex-start;white-space:normal;font-weight:500;font-size:12px;padding:8px 10px;border-color:rgba(249,115,22,0.45);">✨ Opción ${idx + 1}: ${escapeHtml(v.slice(0, 110))}${v.length > 110 ? "…" : ""}</button>`).join("")}
-          </div>` : "";
-
-        const storyInputHtml = curGroups.length > 1 ? `
-          <div class="story-copy-box">
-            <div class="story-copy-head">
-              <span>📱 Copy_Story para copia Historia 9:16 (máx. 90):</span>
-              <span>${storyDraft.length}/90</span>
-            </div>
-            <input type="text" maxlength="90" data-edit-story="${escapeHtml(post.id)}" value="${escapeHtml(storyDraft)}" />
-          </div>` : "";
-
-        return `
-          <article class="card ${cardCls}" data-id="${escapeHtml(post.id)}">
-            <div class="card-top">
-              <div class="meta-left">
-                <span class="id-chip">ID ${escapeHtml(post.id)}</span>
-                <span class="date-label">${escapeHtml(post.fecha)} ${escapeHtml(diaLabel)} · ${escapeHtml(post.hora)}</span>
-                <span class="format-chip">${escapeHtml(post.red || "AMBAS")} · ${escapeHtml(post.formato)}</span>
-                ${post.editado_por ? `<span class="editor-chip">✍️ ${escapeHtml(post.editado_por)} v${escapeHtml(post.version || 1)}</span>` : ""}
-              </div>
-              <span class="status-badge ${badgeCls}">${escapeHtml(post.estado)}</span>
-            </div>
-            <div class="guardrail-bar ${issues.length ? "warn" : "ok"}" id="guard-${escapeHtml(post.id)}">
-              ${issues.length ? "⚠️ " + escapeHtml(issues.join(" | ")) : "✓ Reglas de menú, precios y Cloudinary OK"}
-            </div>
-            <div class="mode-tabs">
-              <button class="mode-btn ${mode === "IG" ? "active" : ""}" data-mode="IG">Instagram Post</button>
-              <button class="mode-btn ${mode === "STORY" ? "active" : ""}" data-mode="STORY">Historia 9:16</button>
-              <button class="mode-btn ${mode === "FB" ? "active" : ""}" data-mode="FB">Facebook Post</button>
-            </div>
-            <div class="preview-stage" id="preview-${escapeHtml(post.id)}">${renderMockup(post, mode)}</div>
-            ${storyKitHtml}
-            ${retryErrorHtml}
-            ${shareGroupsHtml}
-            <div class="editor-area ${isEditing ? "" : "hidden"}">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div>
-                  <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Fecha:</label>
-                  <input type="date" data-edit-fecha="${escapeHtml(post.id)}" value="${escapeHtml(post.fecha)}" />
-                </div>
-                <div>
-                  <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Hora:</label>
-                  <input type="time" data-edit-hora="${escapeHtml(post.id)}" value="${escapeHtml(post.hora)}" />
-                </div>
-              </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                <span style="font-size:11.5px;color:#fdba74;font-weight:700;">✨ Escribir con IA:</span>
-                <button type="button" class="dest-shortcut-btn" data-ai-tone="antojo">🔥 Antojo</button>
-                <button type="button" class="dest-shortcut-btn" data-ai-tone="divertido">😂 Divertido</button>
-                <button type="button" class="dest-shortcut-btn" data-ai-tone="familiar">👨‍👩‍👧 Familiar</button>
-              </div>
-              ${aiVarsHtml}
-              <label style="font-size:12px;color:var(--muted);font-weight:700;">Editar texto en vivo:</label>
-              <textarea data-edit-id="${escapeHtml(post.id)}">${escapeHtml(post.copy)}</textarea>
-              ${renderDestSelector("P_" + post.id, curDest)}
-              ${storyInputHtml}
-              <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;">
-                <button class="btn btn-approve" data-action="save-copy-sheets">💾 Guardar cambios</button>
-                <button class="btn btn-decline" data-action="cancel-post">🗑️ Cancelar</button>
-              </div>
-            </div>
-            <div class="card-actions">
-              <button class="btn btn-approve ${isApproved ? "is-approved" : ""}" data-action="toggle-approve">
-                ${isApproved ? "↩ Borrador" : "✅ Aprobar"}
-              </button>
-              <button class="btn" data-action="toggle-edit">${isEditing ? "✖ Cerrar" : "✏️ Editar"}</button>
-              <button class="btn" data-action="open-gallery">🖼️ Foto</button>
-              <button class="btn" data-action="copy-one">📋 Copiar</button>
-            </div>
-          </article>`;
-      }).join("");
-    }
-
-    function renderGalleryModal() {
-      const cats = ["Todas", ...new Set(gallery.map(g => g.cat))];
-      document.getElementById("galCatTabs").innerHTML = cats.map(c =>
-        `<button class="filter-btn ${galleryCatFilter === c ? "active" : ""}" data-gal-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
-      ).join("");
-      const post = posts.find(p => p.id === galleryTargetPostId);
-      const list = gallery.filter(g => galleryCatFilter === "Todas" || g.cat === galleryCatFilter);
-      document.getElementById("galleryGrid").innerHTML = list.map(g => {
-        const safeUrl = safeCloudinaryUrl(g.url, FALLBACK_LOGO_URL);
-        const transformed = applyCloudinaryTransform(safeUrl, galleryCropMode);
-        const isSel = post && post.foto === transformed;
-        return `
-          <button class="gal-item ${isSel ? "selected" : ""}" data-pick-url="${escapeHtml(safeUrl)}">
-            <img src="${escapeHtml(applyCloudinaryTransform(safeUrl, "FEED"))}" alt="${escapeHtml(g.desc)}" loading="lazy" />
-            <span>${escapeHtml(g.desc)}</span>
-          </button>`;
-      }).join("");
-    }
-
-    function syncNewPostStoryVisibility() {
-      const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
-      const hasStory = groups.some(g => g.formato === "STORY");
-      document.getElementById("newPostStoryCopyBox").style.display = hasStory ? "flex" : "none";
-      const inp = document.getElementById("newPostCopyStory");
-      document.getElementById("newPostStoryCounter").textContent = `${inp.value.length}/90`;
-    }
-
-    document.getElementById("weekStrip").addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-day]");
-      if (!btn) return;
-      dayFilter = dayFilter === btn.dataset.day ? null : btn.dataset.day;
-      if (currentFilter === "SUGGESTIONS" || currentFilter === "PULSE") {
-        currentFilter = "ALL";
-        document.querySelectorAll(".filters .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.filter === "ALL"));
-      }
-      render();
-    });
-
-    document.querySelectorAll(".filters .filter-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".filters .filter-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentFilter = btn.dataset.filter;
-        dayFilter = null;
-        render();
-      });
-    });
-
-    document.getElementById("feed").addEventListener("change", (e) => {
-      const cb = e.target.closest("input[data-dest-field]");
-      if (!cb) return;
-      const box = cb.closest("[data-dest-key]");
-      if (!box) return;
-      const key = box.dataset.destKey;
-      const d = destState[key];
-      if (!d) return;
-      d[cb.dataset.destField] = cb.checked;
-      render();
-    });
-
-    document.getElementById("feed").addEventListener("click", async (e) => {
-      const shortcutBtn = e.target.closest("[data-shortcut]");
-      if (shortcutBtn) {
-        const box = shortcutBtn.closest("[data-dest-key]");
-        if (!box) return;
-        const key = box.dataset.destKey;
-        const sc = shortcutBtn.dataset.shortcut;
-        destState[key] = sc === "ALL"
-          ? { postFb: true, postIg: true, storyFb: true, storyIg: true }
-          : sc === "POSTS"
-            ? { postFb: true, postIg: true, storyFb: false, storyIg: false }
-            : { postFb: false, postIg: false, storyFb: true, storyIg: true };
-        render();
-        return;
-      }
-
-      const sugDayBtn = e.target.closest("[data-sug-day]");
-      if (sugDayBtn) {
-        sugDayFilter = sugDayBtn.dataset.sugDay;
-        render();
-        return;
-      }
-
-      const restoreSugsBtn = e.target.closest("[data-action='restore-sugs-inline']");
-      if (restoreSugsBtn) {
-        if (syncCfg.url) {
-          showToast("Reactivando sugerencias en Sheets...");
-          const r = await pushToSheets({ action: "resetSuggestions" });
-          if (r && r.ok) await syncFromSheets(true);
-        } else {
-          suggestions = buildDefaultSuggestions();
-          saveLocal();
-          render();
-        }
-        showToast("💡 Banco de sugerencias reactivado");
-        return;
-      }
-
-      const testMetaBtn = e.target.closest("[data-action='test-meta']");
-      if (testMetaBtn) {
-        if (!syncCfg.url) { showToast("Conecta Google Sheets primero"); return; }
-        showToast("🔗 Verificando conexión Meta (solo lectura)...");
-        const d = await pushToSheets({ action: "testMeta" });
-        if (d.ok) {
-          showToast(`✅ Meta OK: ${d.pagina?.name || "FB"} · @${d.instagram?.username || "IG"}`);
-        } else {
-          showToast("⚠️ " + ((d.errores && d.errores[0]) || d.error || "Faltan credenciales Meta en Apps Script"));
-        }
-        return;
-      }
-
-      const testTgBtn = e.target.closest("[data-action='test-telegram']");
-      if (testTgBtn) {
-        if (!syncCfg.url) { showToast("Conecta Google Sheets primero"); return; }
-        showToast("Enviando prueba a Telegram...");
-        const d = await pushToSheets({ action: "sendTelegramTest" });
-        showToast(d.ok ? "✅ Aviso enviado a tu Telegram" : ("⚠️ " + (d.error || "Falta configurar Telegram")));
-        return;
-      }
-
-      const card = e.target.closest(".card");
-      if (!card) return;
-
-      if (card.dataset.sid) {
-        const sid = card.dataset.sid;
-        const idx = suggestions.findIndex(s => s.sid === sid);
-        if (idx === -1) return;
-        const sug = suggestions[idx];
-        const modeBtn = e.target.closest("[data-mode]");
-        if (modeBtn) { previewMode[sid] = modeBtn.dataset.mode; render(); return; }
-        const actionBtn = e.target.closest("[data-action]");
-        if (!actionBtn) return;
-        const action = actionBtn.dataset.action;
-
-        if (action === "toggle-sug-estado") {
-          sugInitialEstado[sid] = (sugInitialEstado[sid] || "BORRADOR") === "BORRADOR" ? "APROBADO" : "BORRADOR";
-          render();
-        } else if (action === "open-gallery-sug") {
-          galleryTargetSugId = sid;
-          galleryTargetPostId = null;
-          galleryTargetNewPost = false;
-          galleryTargetLiveShot = false;
-          galleryCropMode = sug.formato === "STORY" ? "STORY" : "ORIG";
-          document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === galleryCropMode));
-          renderGalleryModal();
-          document.getElementById("galleryModal").classList.add("open");
-        } else if (action === "accept-sug") {
-          const dest = getDest("S_" + sid, sug.formato, sug.red);
-          const groups = groupDestinations(dest);
-          if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
-          const estado = sugInitialEstado[sid] || "BORRADOR";
-          const storyCopyClean = String(sug.copy_story || buildAutoStoryCopy(sug.copy)).slice(0, 90);
-          for (const grp of groups) {
-            const copyForGrp = grp.formato === "STORY" ? storyCopyClean : sug.copy;
-            const fotoForGrp = applyCloudinaryTransform(sug.foto, grp.formato === "STORY" ? "STORY" : "FEED");
-            if (estado === "APROBADO") {
-              const v = await validateBeforeApprove({ copy: copyForGrp, fecha: sug.fecha, hora: sug.hora, red: grp.red, formato: grp.formato, foto: fotoForGrp });
-              if (!v.ok) { showToast("⛔ " + v.error); return; }
-            }
-          }
-          const createdIds = [];
-          let syncedAll = true;
-          let lastErr = "";
-          for (const grp of groups) {
-            const isSt = grp.formato === "STORY";
-            const copyForGrp = isSt ? storyCopyClean : sug.copy;
-            const fotoForGrp = applyCloudinaryTransform(sug.foto, isSt ? "STORY" : "FEED");
-            const localId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-            const res = await pushToSheets({
-              action: "create", fecha: sug.fecha, hora: sug.hora,
-              red: grp.red, formato: grp.formato, estado, copy: copyForGrp, foto: fotoForGrp,
-              idea: sug.titulo, titulo: sug.titulo
-            });
-            const finalId = (res && res.ok && res.id) ? Number(res.id) : localId;
-            if (!res || !res.ok) { syncedAll = false; if (res && res.error) lastErr = res.error; }
-            posts.push({
-              id: finalId, fecha: sug.fecha, dia: sug.dia, hora: sug.hora,
-              red: grp.red, formato: grp.formato, estado, copy: copyForGrp, foto: fotoForGrp,
-              nota_error: "", fecha_pub_real: "", version: 1, editado_por: syncCfg.editor || "Ale"
-            });
-            createdIds.push(`${finalId} (${grp.formato}/${grp.red})`);
-          }
-          suggestions.splice(idx, 1);
-          if (syncCfg.url) await pushToSheets({ action: "updateSuggestion", sid, estado_sug: "ACEPTADA" });
-          saveLocal();
-          render();
-          showToast(syncedAll && syncCfg.url ? `☁️ Creadas en Sheets: ${createdIds.join(" + ")}` : (lastErr ? `⚠️ ${lastErr}` : `Programada(s): ${createdIds.join(" + ")}`));
-        } else if (action === "decline-sug") {
-          suggestions.splice(idx, 1);
-          if (syncCfg.url) await pushToSheets({ action: "updateSuggestion", sid, estado_sug: "DECLINADA" });
-          saveLocal();
-          render();
-          showToast("Sugerencia declinada en ambos celulares");
-        }
-        return;
-      }
-
-      const id = Number(card.dataset.id);
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-
-      const aiToneBtn = e.target.closest("[data-ai-tone]");
-      if (aiToneBtn) {
-        if (!syncCfg.url) { showToast("Conecta Google Sheets para usar IA"); return; }
-        showToast("✨ Generando 3 opciones con Gemini...");
-        const d = await pushToSheets({
-          action: "generateCopy",
-          tono: aiToneBtn.dataset.aiTone, fecha: post.fecha, formato: post.formato, copy: post.copy
-        });
-        if (d.ok && Array.isArray(d.variantes)) {
-          aiVariantsByPost[id] = d.variantes;
-          render();
-          showToast("✨ 3 opciones listas — toca una para aplicarla");
-        } else {
-          showToast("⚠️ " + (d.error || "Falta GEMINI_API_KEY en Apps Script"));
-        }
-        return;
-      }
-
-      const applyAiBtn = e.target.closest("[data-apply-ai]");
-      if (applyAiBtn) {
-        const idx = Number(applyAiBtn.dataset.applyAi);
-        const chosen = (aiVariantsByPost[id] || [])[idx];
-        if (chosen) {
-          post.copy = chosen;
-          saveLocal();
-          render();
-          showToast(`Opción ${idx + 1} aplicada — guarda para subir a Sheets`);
-        }
-        return;
-      }
-
-      const modeBtn = e.target.closest("[data-mode]");
-      if (modeBtn) { previewMode[id] = modeBtn.dataset.mode; render(); return; }
-      const actionBtn = e.target.closest("[data-action]");
-      if (!actionBtn) return;
-      const action = actionBtn.dataset.action;
-
-      if (action === "retry-missing") {
-        const missingRed = post.estado === "ERROR_FB" ? "FB" : (post.estado === "ERROR_IG" ? "IG" : normalizeRed(post.red || "AMBAS"));
-        const res = await pushToSheets({ action: "retryNetwork", id, missingRed });
-        if (res && res.ok) {
-          post.red = missingRed;
-          post.estado = "APROBADO";
-          post.nota_error = "";
-          if (res.version) post.version = Number(res.version);
-          post.editado_por = res.editado_por || syncCfg.editor;
-          saveLocal();
-          render();
-          showToast(`🔄 ID ${id} listo para reintentar en ${missingRed}`);
-        } else {
-          showToast("⚠️ " + ((res && res.error) || "No se pudo marcar reintento en Sheets"));
-        }
-        return;
-      }
-
-      if (action === "toggle-approve") {
-        const prevEstado = post.estado;
-        const nextEstado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
-        if (nextEstado === "APROBADO") {
-          const v = await validateBeforeApprove(post);
-          if (!v.ok) { showToast("⛔ " + v.error); return; }
-        }
-        // Envía SOLO estado + version (bloqueo optimista sin sobrescribir copy/foto)
-        const res = await pushToSheets({ action: "updatePost", id, estado: nextEstado, version: post.version || 1 });
-        if (res && res.conflict) {
-          handleConflictFromServer(post, res, null);
-          return;
-        }
-        if (syncCfg.url && (!res || !res.ok)) {
-          showToast("⛔ " + ((res && res.error) || "No se pudo actualizar en Sheets"));
-          return;
-        }
-        post.estado = nextEstado;
-        if (res && res.version) post.version = Number(res.version);
-        if (res && res.editado_por) post.editado_por = res.editado_por;
-        saveLocal();
-        render();
-        showToast(res && res.ok ? `☁️ ID ${id} → ${post.estado} (v${post.version})` : `ID ${id} → ${post.estado}`);
-      } else if (action === "mark-published") {
-        const nextEstado = post.estado === "PUBLICADO" ? "BORRADOR" : "PUBLICADO";
-        const res = await pushToSheets({ action: "updatePost", id, estado: nextEstado, version: post.version || 1 });
-        if (res && res.conflict) { handleConflictFromServer(post, res, null); return; }
-        post.estado = nextEstado;
-        if (res && res.version) post.version = Number(res.version);
-        if (res && res.editado_por) post.editado_por = res.editado_por;
-        saveLocal();
-        render();
-        showToast(res && res.ok ? `☁️ Historia ID ${id} → ${post.estado}` : `Historia ID ${id} → ${post.estado}`);
-      } else if (action === "story-kit") {
-        try { await navigator.clipboard.writeText(post.copy); } catch {}
-        const a = document.createElement("a");
-        a.href = applyCloudinaryTransform(post.foto, "STORY");
-        a.target = "_blank";
-        a.rel = "noopener";
-        a.download = `laparrilla_story_${post.id}.jpg`;
-        a.click();
-        showToast("Texto copiado y foto 9:16 lista para guardar");
-      } else if (action === "toggle-edit") {
-        editorOpen[id] = !editorOpen[id];
-        render();
-      } else if (action === "save-copy-sheets") {
-        const dest = getDest("P_" + id, post.formato, post.red || "AMBAS");
-        const groups = groupDestinations(dest);
-        if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
-        const doSave = async (force = false) => {
-          post.formato = groups[0].formato;
-          post.red = groups[0].red;
-          const r1 = await pushToSheets({
-            action: "updatePost", id, copy: post.copy, fecha: post.fecha, hora: post.hora,
-            formato: post.formato, red: post.red, version: post.version || 1, force
-          });
-          if (r1 && r1.conflict && !force) {
-            handleConflictFromServer(post, r1, () => doSave(true));
-            return;
-          }
-          let synced = !!(r1 && r1.ok);
-          let errMsg = (!synced && r1 && r1.error) ? r1.error : "";
-          if (r1 && r1.version) post.version = Number(r1.version);
-          if (r1 && r1.editado_por) post.editado_por = r1.editado_por;
-
-          if (groups.length > 1) {
-            const extraFmt = groups[1].formato;
-            const extraCopy = extraFmt === "STORY"
-              ? String(postStoryCopyDraft[id] || buildAutoStoryCopy(post.copy)).slice(0, 90)
-              : post.copy;
-            const extraFoto = applyCloudinaryTransform(post.foto, extraFmt === "STORY" ? "STORY" : "FEED");
-            const localExtraId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-            const r2 = await pushToSheets({
-              action: "create", fecha: post.fecha, hora: post.hora,
-              red: groups[1].red, formato: extraFmt, estado: post.estado, copy: extraCopy, foto: extraFoto,
-              idea: `Copia ${extraFmt} de ID ${id}`
-            });
-            const finalExtraId = (r2 && r2.ok && r2.id) ? Number(r2.id) : localExtraId;
-            posts.push({
-              id: finalExtraId, fecha: post.fecha, dia: post.dia, hora: post.hora,
-              red: groups[1].red, formato: extraFmt, estado: post.estado, copy: extraCopy, foto: extraFoto,
-              nota_error: "", fecha_pub_real: "", version: 1, editado_por: syncCfg.editor || "Ale"
-            });
-            if (!r2 || !r2.ok) { synced = false; if (r2 && r2.error) errMsg = r2.error; }
-          }
-          saveLocal();
-          render();
-          showToast(synced && syncCfg.url ? `☁️ Guardado (${groups.map(g => g.formato + "/" + g.red).join(" + ")})` : (errMsg ? `⚠️ ${errMsg}` : "Cambios guardados localmente"));
-        };
-        await doSave(false);
-      } else if (action === "cancel-post") {
-        if (!confirm(`¿Cancelar la publicación ID ${id}?`)) return;
-        const res = await pushToSheets({ action: "updatePost", id, estado: "CANCELADO", version: post.version || 1 });
-        if (res && res.conflict) { handleConflictFromServer(post, res, null); return; }
-        post.estado = "CANCELADO";
-        if (res && res.version) post.version = Number(res.version);
-        saveLocal();
-        render();
-        showToast(res && res.ok ? `☁️ ID ${id} cancelada en Sheets` : `ID ${id} cancelada`);
-      } else if (action === "share-fb-groups") {
-        try { await navigator.clipboard.writeText(post.copy); } catch {}
-        window.open("https://www.facebook.com/La-Parrilla-106299351752487", "_blank", "noopener");
-        showToast("Copy copiado · Abriendo Facebook para compartir en grupos");
-      } else if (action === "open-gallery") {
-        galleryTargetPostId = id;
-        galleryTargetSugId = null;
-        galleryTargetNewPost = false;
-        galleryTargetLiveShot = false;
-        galleryCropMode = post.formato === "STORY" ? "STORY" : "ORIG";
-        document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === galleryCropMode));
-        renderGalleryModal();
-        document.getElementById("galleryModal").classList.add("open");
-      } else if (action === "copy-one") {
-        try { await navigator.clipboard.writeText(post.copy); showToast(`Copy de ID ${id} copiado`); }
-        catch { showToast("No se pudo copiar"); }
-      }
-    });
-
-    document.getElementById("feed").addEventListener("input", (e) => {
-      const sugSt = e.target.closest("input[data-sug-story]");
-      if (sugSt) {
-        const s = suggestions.find(x => x.sid === sugSt.dataset.sugStory);
-        if (s) {
-          s.copy_story = sugSt.value.slice(0, 90);
-          const head = sugSt.parentElement.querySelector(".story-copy-head span:last-child");
-          if (head) head.textContent = `${s.copy_story.length}/90`;
-          saveLocal();
-        }
-        return;
-      }
-      const editSt = e.target.closest("input[data-edit-story]");
-      if (editSt) {
-        const pid = Number(editSt.dataset.editStory);
-        postStoryCopyDraft[pid] = editSt.value.slice(0, 90);
-        const head = editSt.parentElement.querySelector(".story-copy-head span:last-child");
-        if (head) head.textContent = `${postStoryCopyDraft[pid].length}/90`;
-        return;
-      }
-      const fInp = e.target.closest("input[data-edit-fecha]");
-      if (fInp) {
-        const p = posts.find(x => x.id === Number(fInp.dataset.editFecha));
-        if (p) { p.fecha = fInp.value; p.dia = getDiaFromFecha(p.fecha); saveLocal(); renderWeekStrip(); }
-        return;
-      }
-      const hInp = e.target.closest("input[data-edit-hora]");
-      if (hInp) {
-        const p = posts.find(x => x.id === Number(hInp.dataset.editHora));
-        if (p) { p.hora = hInp.value; saveLocal(); }
-        return;
-      }
-      const ta = e.target.closest("textarea[data-edit-id]");
-      if (!ta) return;
-      const id = Number(ta.dataset.editId);
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-      post.copy = ta.value;
-      saveLocal();
-      const mode = previewMode[id] || (post.formato === "STORY" ? "STORY" : "IG");
-      const stage = document.getElementById(`preview-${id}`);
-      if (stage) stage.innerHTML = renderMockup(post, mode);
-      const issues = checkGuardrails(post);
-      const g = document.getElementById(`guard-${id}`);
-      if (g) {
-        g.className = `guardrail-bar ${issues.length ? "warn" : "ok"}`;
-        g.textContent = issues.length ? "⚠️ " + issues.join(" | ") : "✓ Reglas de menú, precios y Cloudinary OK";
-      }
-    });
-
-    document.getElementById("cropTabs").addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-crop]");
-      if (!btn) return;
-      galleryCropMode = btn.dataset.crop;
-      document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b === btn));
-      renderGalleryModal();
-    });
-
-    document.getElementById("galCatTabs").addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-gal-cat]");
-      if (!btn) return;
-      galleryCatFilter = btn.dataset.galCat;
-      renderGalleryModal();
-    });
-
-    document.getElementById("galleryGrid").addEventListener("click", async (e) => {
-      const btn = e.target.closest("[data-pick-url]");
-      if (!btn) return;
-      const pickedSafe = safeCloudinaryUrl(btn.dataset.pickUrl, FALLBACK_LOGO_URL);
-      const newUrl = applyCloudinaryTransform(pickedSafe, galleryCropMode);
-      if (galleryTargetLiveShot) {
-        liveShotPhoto = applyCloudinaryTransform(pickedSafe, "STORY");
-        document.getElementById("liveShotThumb").src = liveShotPhoto;
-        document.getElementById("galleryModal").classList.remove("open");
-        showToast("Foto 9:16 lista para Disparo en vivo");
-        return;
-      }
-      if (galleryTargetNewPost) {
-        newPostPhoto = newUrl;
-        document.getElementById("newPostThumb").src = newUrl;
-        document.getElementById("galleryModal").classList.remove("open");
-        showToast("Foto seleccionada para nueva publicación");
-        return;
-      }
-      if (galleryTargetSugId) {
-        const sug = suggestions.find(s => s.sid === galleryTargetSugId);
-        if (!sug) return;
-        sug.foto = newUrl;
-        saveLocal();
-        document.getElementById("galleryModal").classList.remove("open");
-        render();
-        showToast(`Foto actualizada en Sugerencia ${sug.sid}`);
-        return;
-      }
-      const post = posts.find(p => p.id === galleryTargetPostId);
-      if (!post) return;
-      document.getElementById("galleryModal").classList.remove("open");
-      const res = await pushToSheets({ action: "updatePost", id: post.id, foto: newUrl, version: post.version || 1 });
-      if (res && res.conflict) { handleConflictFromServer(post, res, null); return; }
-      post.foto = newUrl;
-      if (res && res.version) post.version = Number(res.version);
-      if (res && res.editado_por) post.editado_por = res.editado_por;
-      saveLocal();
-      render();
-      showToast(res && res.ok ? `☁️ Foto actualizada en Sheets (ID ${post.id})` : `Foto actualizada (ID ${post.id})`);
-    });
-
-    // 🔥 Disparo en vivo
-    const liveCopyInp = document.getElementById("liveShotCopy");
-    const updateLiveCounter = () => {
-      document.getElementById("liveShotCounter").textContent = `${liveCopyInp.value.length}/90`;
-    };
-    liveCopyInp.addEventListener("input", updateLiveCounter);
-
-    document.getElementById("liveShotBtn").addEventListener("click", () => {
-      liveShotEstado = "APROBADO";
-      const estBtn = document.getElementById("liveShotEstadoBtn");
-      estBtn.textContent = liveShotEstado;
-      estBtn.classList.add("active");
-      document.getElementById("liveShotThumb").src = applyCloudinaryTransform(liveShotPhoto, "STORY");
-      updateLiveCounter();
-      document.getElementById("liveShotModal").classList.add("open");
-    });
-    document.getElementById("closeLiveShotBtn").addEventListener("click", () => document.getElementById("liveShotModal").classList.remove("open"));
-    document.getElementById("liveShotEstadoBtn").addEventListener("click", (e) => {
-      liveShotEstado = liveShotEstado === "APROBADO" ? "BORRADOR" : "APROBADO";
-      e.target.textContent = liveShotEstado;
-      e.target.classList.toggle("active", liveShotEstado === "APROBADO");
-    });
-    document.getElementById("liveShotPickPhotoBtn").addEventListener("click", () => {
-      galleryTargetLiveShot = true;
-      galleryTargetNewPost = false;
-      galleryTargetPostId = null;
-      galleryTargetSugId = null;
-      galleryCropMode = "STORY";
-      document.querySelectorAll("#cropTabs .filter-btn").forEach(b => b.classList.toggle("active", b.dataset.crop === "STORY"));
-      document.getElementById("cldPresetInput").value = syncCfg.preset || "";
-      renderGalleryModal();
-      document.getElementById("galleryModal").classList.add("open");
-    });
-    document.getElementById("saveLiveShotBtn").addEventListener("click", async () => {
-      const copy = liveCopyInp.value.trim().slice(0, 90);
-      if (!copy) { showToast("Escribe un texto corto para la historia"); return; }
-      const fecha = getTodayMx();
-      const hora = getNowTimeMx();
-      const foto = applyCloudinaryTransform(liveShotPhoto, "STORY");
-      if (liveShotEstado === "APROBADO") {
-        const v = await validateBeforeApprove({ fecha, hora, red: "AMBAS", formato: "STORY", copy, foto });
-        if (!v.ok) { showToast("⛔ " + v.error); return; }
-      }
-      const localId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-      const res = await pushToSheets({
-        action: "create", fecha, hora, red: "AMBAS", formato: "STORY",
-        estado: liveShotEstado, copy, foto, idea: "🔥 Disparo en vivo (Historia FB+IG)"
-      });
-      if (syncCfg.url && (!res || !res.ok)) {
-        showToast("⛔ " + ((res && res.error) || "No se pudo guardar en Sheets"));
-        return;
-      }
-      const finalId = (res && res.ok && res.id) ? Number(res.id) : localId;
-      posts.push({
-        id: finalId, fecha, dia: getDiaFromFecha(fecha), hora, red: "AMBAS", formato: "STORY",
-        estado: liveShotEstado, copy, foto, nota_error: "", fecha_pub_real: "", version: 1, editado_por: syncCfg.editor || "Ale"
-      });
-      saveLocal();
-      document.getElementById("liveShotModal").classList.remove("open");
-      render();
-      showToast(`🔥 Historia en vivo lista (ID ${finalId} · FB + IG)`);
-    });
-
-    // ➕ Nueva publicación
-    document.getElementById("newPostCopyStory").addEventListener("input", syncNewPostStoryVisibility);
-    document.getElementById("newPostBtn").addEventListener("click", () => {
-      document.getElementById("newPostFecha").value = getTodayMx();
-      document.getElementById("newPostHora").value = "18:00";
-      document.getElementById("newPostCopy").value = "";
-      document.getElementById("newPostCopyStory").value = "";
-      document.getElementById("newPostThumb").src = safeCloudinaryUrl(newPostPhoto);
-      document.getElementById("newPostEstadoBtn").textContent = newPostEstado;
-      document.getElementById("newPostEstadoBtn").classList.toggle("active", newPostEstado === "APROBADO");
-      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", getDest("NEW_POST", "POST", "AMBAS"));
-      syncNewPostStoryVisibility();
-      document.getElementById("newPostModal").classList.add("open");
-    });
-
-    document.getElementById("newPostModal").addEventListener("click", async (e) => {
-      const btn = e.target.closest("[data-new-ai]");
-      if (!btn) return;
-      if (!syncCfg.url) { showToast("Conecta Google Sheets para usar IA"); return; }
-      const fecha = document.getElementById("newPostFecha").value;
-      const idea = document.getElementById("newPostCopy").value.trim();
-      const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
-      const formato = (groups[0] && groups[0].formato) || "POST";
-      showToast("✨ Generando 3 opciones con Gemini...");
-      const d = await pushToSheets({ action: "generateCopy", tono: btn.dataset.newAi, fecha, formato, idea });
-      const box = document.getElementById("newPostAiVariants");
-      if (d.ok && Array.isArray(d.variantes)) {
-        box.style.display = "flex";
-        box.innerHTML = d.variantes.map((v, i) =>
-          `<button type="button" class="btn" data-pick-new-ai="${i}" style="text-align:left;justify-content:flex-start;white-space:normal;font-weight:500;font-size:12px;padding:8px 10px;border-color:rgba(249,115,22,0.45);">✨ Opción ${i + 1}: ${escapeHtml(v.slice(0, 110))}${v.length > 110 ? "…" : ""}</button>`
-        ).join("");
-        box._variants = d.variantes;
-        showToast("✨ Elige una de las 3 opciones");
-      } else {
-        showToast("⚠️ " + (d.error || "Falta GEMINI_API_KEY en Apps Script"));
-      }
-    });
-
-    document.getElementById("newPostAiVariants").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-pick-new-ai]");
-      if (!b) return;
-      const v = (document.getElementById("newPostAiVariants")._variants || [])[Number(b.dataset.pickNewAi)];
-      if (v) {
-        document.getElementById("newPostCopy").value = v;
-        if (!document.getElementById("newPostCopyStory").value.trim()) {
-          document.getElementById("newPostCopyStory").value = buildAutoStoryCopy(v);
-          syncNewPostStoryVisibility();
-        }
-        showToast("Opción aplicada");
-      }
-    });
-
-    document.getElementById("closeNewPostBtn").addEventListener("click", () => document.getElementById("newPostModal").classList.remove("open"));
-    document.getElementById("newPostEstadoBtn").addEventListener("click", (e) => {
-      newPostEstado = newPostEstado === "BORRADOR" ? "APROBADO" : "BORRADOR";
-      e.target.textContent = newPostEstado;
-      e.target.classList.toggle("active", newPostEstado === "APROBADO");
-    });
-    document.getElementById("newPostDestContainer").addEventListener("click", (e) => {
-      const sc = e.target.closest("[data-shortcut]");
-      if (!sc) return;
-      const v = sc.dataset.shortcut;
-      destState["NEW_POST"] = v === "ALL"
-        ? { postFb: true, postIg: true, storyFb: true, storyIg: true }
-        : v === "POSTS"
-          ? { postFb: true, postIg: true, storyFb: false, storyIg: false }
-          : { postFb: false, postIg: false, storyFb: true, storyIg: true };
-      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", destState["NEW_POST"]);
-      syncNewPostStoryVisibility();
-    });
-    document.getElementById("newPostDestContainer").addEventListener("change", (e) => {
-      const cb = e.target.closest("input[data-dest-field]");
-      if (!cb) return;
-      destState["NEW_POST"][cb.dataset.destField] = cb.checked;
-      document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", destState["NEW_POST"]);
-      syncNewPostStoryVisibility();
-    });
-    document.getElementById("newPostPickPhotoBtn").addEventListener("click", () => {
-      galleryTargetNewPost = true;
-      galleryTargetLiveShot = false;
-      galleryTargetPostId = null;
-      galleryTargetSugId = null;
-      galleryCropMode = "ORIG";
-      document.getElementById("cldPresetInput").value = syncCfg.preset || "";
-      renderGalleryModal();
-      document.getElementById("galleryModal").classList.add("open");
-    });
-
-    document.getElementById("saveNewPostBtn").addEventListener("click", async () => {
-      const fecha = document.getElementById("newPostFecha").value;
-      const hora = document.getElementById("newPostHora").value || "18:00";
-      const copy = document.getElementById("newPostCopy").value.trim();
-      const copyStoryRaw = document.getElementById("newPostCopyStory").value.trim();
-      if (!fecha || (!copy && !copyStoryRaw)) { showToast("Escribe fecha y copy"); return; }
-      const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
-      if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
-      const copyStory = (copyStoryRaw || buildAutoStoryCopy(copy)).slice(0, 90);
-      const isSplit = groups.length > 1;
-
-      for (const grp of groups) {
-        const isSt = grp.formato === "STORY";
-        const grpCopy = isSt ? copyStory : (copy || copyStory);
-        const grpFoto = isSplit
-          ? applyCloudinaryTransform(newPostPhoto, isSt ? "STORY" : "FEED")
-          : safeCloudinaryUrl(newPostPhoto);
-        if (newPostEstado === "APROBADO") {
-          const v = await validateBeforeApprove({ fecha, hora, red: grp.red, formato: grp.formato, copy: grpCopy, foto: grpFoto });
-          if (!v.ok) { showToast("⛔ " + v.error); return; }
-        }
-      }
-
-      const dia = getDiaFromFecha(fecha);
-      let syncedAll = true;
-      let lastErr = "";
-      const ids = [];
-      for (const grp of groups) {
-        const isSt = grp.formato === "STORY";
-        const grpCopy = isSt ? copyStory : (copy || copyStory);
-        const grpFoto = isSplit
-          ? applyCloudinaryTransform(newPostPhoto, isSt ? "STORY" : "FEED")
-          : safeCloudinaryUrl(newPostPhoto);
-        const localId = posts.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-        const res = await pushToSheets({
-          action: "create", fecha, hora, red: grp.red, formato: grp.formato,
-          estado: newPostEstado, copy: grpCopy, foto: grpFoto,
-          idea: "Creada desde La Parrilla Studio"
-        });
-        const finalId = (res && res.ok && res.id) ? Number(res.id) : localId;
-        if (!res || !res.ok) { syncedAll = false; if (res && res.error) lastErr = res.error; }
-        posts.push({
-          id: finalId, fecha, dia, hora, red: grp.red, formato: grp.formato,
-          estado: newPostEstado, copy: grpCopy, foto: grpFoto, nota_error: "", fecha_pub_real: "", version: 1, editado_por: syncCfg.editor || "Ale"
-        });
-        ids.push(finalId);
-      }
-      saveLocal();
-      document.getElementById("newPostModal").classList.remove("open");
-      render();
-      showToast(syncedAll && syncCfg.url ? `☁️ Creada en Sheets (ID ${ids.join(", ")})` : (lastErr ? `⚠️ ${lastErr}` : `Publicación creada (ID ${ids.join(", ")})`));
-    });
-
-    document.getElementById("camUploadInput").addEventListener("change", async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const preset = document.getElementById("cldPresetInput").value.trim();
-      if (!preset) { showToast("Escribe tu Upload Preset de Cloudinary primero"); return; }
-      syncCfg.preset = preset;
-      saveLocal();
-      showToast("Subiendo foto a Cloudinary...");
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("upload_preset", preset);
-        const res = await fetch("https://api.cloudinary.com/v1_1/sgn99usk/image/upload", { method: "POST", body: fd });
-        const data = await res.json();
-        if (!data.secure_url || !String(data.secure_url).startsWith(CLOUDINARY_PREFIX)) {
-          showToast("Error Cloudinary: " + (data.error?.message || "preset"));
-          return;
-        }
-        gallery.unshift({ id: String(Date.now()), cat: "Local", desc: file.name, url: data.secure_url });
-        renderGalleryModal();
-        await pushToSheets({ action: "addMedia", nombre: file.name, url: data.secure_url, categoria: "Local" });
-        showToast("📸 Foto subida a Cloudinary");
-      } catch {
-        showToast("No se pudo subir la foto");
-      } finally {
-        e.target.value = "";
-      }
-    });
-
-    async function runHealthCheck() {
-      const box = document.getElementById("healthResults");
-      const row = (icon, title, detail) => `
-        <div style="padding:10px 12px;border-radius:12px;background:#16120f;border:1px solid var(--border);">
-          <div style="font-weight:800;">${escapeHtml(icon)} ${escapeHtml(title)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
-        </div>`;
-
-      box.innerHTML = row("⏳", "Comprobando...", "Verificando app v9, seguridad POST-only, Google Apps Script y calendario...");
-
-      let swOk = true;
-      try {
-        if ("serviceWorker" in navigator) {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg) await reg.update().catch(() => {});
-        }
-      } catch { swOk = false; }
-      const appHtml = swOk
-        ? row("✅", `App actualizada (${APP_VERSION}) · Celular: ${syncCfg.editor || "Ale"}`, "CSP activa, botones táctiles 44px y caché offline v9 lista.")
-        : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Si notas algo raro, toca 'Recarga limpia'.");
-
-      let serverHtml = "";
-      let sheetHtml = "";
-      if (!syncCfg.url) {
-        serverHtml = row("❌", "Falta conectar Google Sheets", "Toca '⚙️ Conectar' arriba y pega tu URL + PIN.");
-        sheetHtml = row("⚠️", "Calendario en modo local", "Conecta tu Web App para sincronizar ambos celulares.");
-      } else {
-        const hc = await pushToSheets({ action: "healthCheck" });
-        if (hc && hc.ok && Number(hc.bridgeVersion) >= 4) {
-          const extras = [
-            `PIN solo POST: ${hc.pinPostOnly ? "✅" : "⚠️"}`,
-            `Bloqueo optimista: ${hc.optimisticLockEnabled ? "✅" : "⚠️"}`,
-            `Motor Meta FB/IG: ${hc.metaConfigured ? "✅" : "⚠️ falta token Meta"}`,
-            `Sugerencias compartidas: ${hc.suggestionsSheetConnected ? "✅" : "⚠️"}`
-          ].join(" · ");
-          serverHtml = row("✅", `Servidor Google conectado (v${hc.bridgeVersion})`, extras);
-
-          const gData = await pushToSheets({ action: "getAll" });
-          if (gData && gData.ok && Array.isArray(gData.publicaciones)) {
-            sheetHtml = row("✅", "Calendario_LaParrilla conectado", `${hc.approvedCount || 0} aprobada(s) · ${hc.publishedCount || 0} publicada(s) · ${hc.errorCount || 0} error(es).`);
-          } else {
-            sheetHtml = row("❌", "No se pudo leer Publicaciones", gData?.error || "Revisa permisos del Web App.");
-          }
-        } else if (hc && hc.locked) {
-          serverHtml = row("🔒", "PIN bloqueado temporalmente (15 min)", hc.error || "Demasiados intentos fallidos.");
-          sheetHtml = row("⚠️", "Espera 15 minutos antes de reintentar", "Protección anti fuerza bruta activa.");
-        } else if (hc && hc.error) {
-          serverHtml = row("❌", "Error de conexión / PIN", hc.error);
-          sheetHtml = row("⚠️", "Calendario no verificado", "Corrige tu PIN o URL en '⚙️ Conectar'.");
-        } else {
-          serverHtml = row("⚠️", "Servidor Google desactualizado", "Verifica el deployment activo en Apps Script.");
-          sheetHtml = row("❌", "Error de red al leer Calendario_LaParrilla", "Revisa tu conexión a internet.");
-        }
-      }
-      box.innerHTML = appHtml + serverHtml + sheetHtml;
-    }
-
-    document.getElementById("healthBtn").addEventListener("click", () => {
-      document.getElementById("healthModal").classList.add("open");
-      runHealthCheck();
-    });
-    document.getElementById("closeHealthBtn").addEventListener("click", () => document.getElementById("healthModal").classList.remove("open"));
-    document.getElementById("recheckHealthBtn").addEventListener("click", runHealthCheck);
-    document.getElementById("forceReloadBtn").addEventListener("click", async () => {
-      try {
-        if ("caches" in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        }
-        if ("serviceWorker" in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(r => r.unregister()));
-        }
-      } catch {}
-      location.replace(location.pathname + "?v=" + Date.now());
-    });
-
-    // Botón destructivo movido a Diagnóstico con doble confirmación
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      if (!confirm("⚠️ ¿Seguro que deseas restaurar los datos demo locales en ESTE celular? (No borra Google Sheets).")) return;
-      if (!confirm("Segunda confirmación: se perderán los borradores locales no sincronizados. ¿Continuar?")) return;
-      posts = JSON.parse(JSON.stringify(INITIAL_POSTS));
-      suggestions = buildDefaultSuggestions();
-      saveLocal();
-      render();
-      document.getElementById("healthModal").classList.remove("open");
-      showToast("Datos demo locales restaurados");
-    });
-
-    document.getElementById("resetSugsBtn").addEventListener("click", async () => {
-      if (!confirm("¿Reactivar todas las sugerencias en Sheets para ambos celulares?")) return;
-      if (syncCfg.url) {
-        const r = await pushToSheets({ action: "resetSuggestions" });
-        if (r && r.ok) await syncFromSheets(true);
-      } else {
-        suggestions = buildDefaultSuggestions();
-        saveLocal();
-        render();
-      }
-      document.getElementById("healthModal").classList.remove("open");
-      showToast("💡 Sugerencias reactivadas");
-    });
-
-    document.getElementById("closeGalleryBtn").addEventListener("click", () => document.getElementById("galleryModal").classList.remove("open"));
-    document.getElementById("syncPill").addEventListener("click", () => {
-      document.getElementById("gasEditorSelect").value = syncCfg.editor || "Ale";
-      document.getElementById("gasUrlInput").value = syncCfg.url || "";
-      document.getElementById("gasPinInput").value = syncCfg.pin || "";
-      document.getElementById("syncModal").classList.add("open");
-    });
-    document.getElementById("closeSyncBtn").addEventListener("click", () => document.getElementById("syncModal").classList.remove("open"));
-    document.getElementById("saveSyncBtn").addEventListener("click", async () => {
-      syncCfg.editor = document.getElementById("gasEditorSelect").value || "Ale";
-      syncCfg.url = document.getElementById("gasUrlInput").value.trim();
-      syncCfg.pin = document.getElementById("gasPinInput").value.trim();
-      saveLocal();
-      document.getElementById("syncModal").classList.remove("open");
-      render();
-      if (syncCfg.url) await syncFromSheets(false);
-    });
-    document.getElementById("disconnectSyncBtn").addEventListener("click", () => {
-      syncCfg.url = "";
-      lastSyncAt = 0;
-      lastSyncOk = false;
-      saveLocal();
-      document.getElementById("syncModal").classList.remove("open");
-      render();
-      showToast("Modo local activado");
-    });
-    document.getElementById("syncNowBtn").addEventListener("click", () => {
-      if (!syncCfg.url) {
-        document.getElementById("syncPill").click();
-      } else {
-        syncFromSheets(false);
-      }
-    });
-    document.getElementById("copyApprovedBtn").addEventListener("click", async () => {
-      const approved = posts.filter(p => p.estado === "APROBADO");
-      if (!approved.length) { showToast("Primero aprueba al menos una tarjeta"); return; }
-      const text = approved.map(p => `[ID ${p.id} · ${p.fecha} ${p.hora} · ${p.formato}]\n${p.copy}\nFoto: ${p.foto}`).join("\n\n---\n\n");
-      try { await navigator.clipboard.writeText(text); showToast(`${approved.length} aprobada(s) copiada(s)`); }
-      catch { showToast("No se pudo copiar"); }
-    });
-
-    // Auto-sincronización al volver a la app (máximo 1 vez cada 60 s)
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") maybeAutoSync();
-    });
-    window.addEventListener("focus", maybeAutoSync);
-    window.addEventListener("online", () => { updateSyncPillLabel(); maybeAutoSync(); });
-    window.addEventListener("offline", updateSyncPillLabel);
-    setInterval(updateSyncPillLabel, 30000);
-
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
-    render();
-    if (syncCfg.url) syncFromSheets(true);
-  </script>
+  <script src="./app.js" defer></script>
 </body>
 </html>

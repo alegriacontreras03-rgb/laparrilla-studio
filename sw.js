@@ -1,7 +1,7 @@
-// v9 app-shell network-first + Cloudinary stale-while-revalidate (no intercepta POST ni Apps Script)
-const SHELL_CACHE = "lp-studio-shell-v9";
-const IMG_CACHE = "lp-studio-img-v9";
-const SHELL_ASSETS = ["./", "./index.html", "./manifest.json"];
+// v10 app-shell network-first (con app.js) + Cloudinary stale-while-revalidate (no intercepta POST ni Apps Script)
+const SHELL_CACHE = "lp-studio-shell-v10";
+const IMG_CACHE = "lp-studio-img-v10";
+const SHELL_ASSETS = ["./", "./index.html", "./app.js", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -21,7 +21,6 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
-  // Nunca interceptar POST ni llamadas al backend de Google Apps Script
   if (req.method !== "GET") return;
   let url;
   try {
