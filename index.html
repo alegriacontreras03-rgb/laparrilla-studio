@@ -528,6 +528,7 @@
         </div>
       </div>
       <div class="header-right">
+        <button class="sync-pill" id="healthBtn" title="Diagnóstico rápido">🩺 Probar sistema</button>
         <button class="sync-pill" id="syncPill">⚙️ Conectar Sheets</button>
       </div>
     </div>
@@ -610,6 +611,21 @@
     </div>
   </div>
 
+  <!-- Modal: Diagnóstico rápido (Probar sistema) -->
+  <div class="modal-backdrop" id="healthModal">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h2>🩺 Diagnóstico del Sistema</h2>
+        <button class="btn" id="closeHealthBtn">✖ Cerrar</button>
+      </div>
+      <div id="healthResults" style="display:flex;flex-direction:column;gap:8px;font-size:13px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn-primary" id="recheckHealthBtn">🔄 Volver a probar</button>
+        <button class="btn btn-secondary" id="forceReloadBtn">🧹 Forzar recarga limpia</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Conexión Bidireccional Google Sheets (Apps Script) -->
   <div class="modal-backdrop" id="syncModal">
     <div class="modal-sheet">
@@ -634,6 +650,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    const APP_VERSION = "v6";
     const WA_BASE = "https://wa.me/523330723340?text=";
     const INITIAL_GALLERY = [
       { id: "1", cat: "Burritos", desc: "Burrito de camarón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549726/dwwndaog2uqtspzguc8x.jpg" },
@@ -1635,6 +1652,87 @@
       } finally {
         e.target.value = "";
       }
+    });
+
+    async function runHealthCheck() {
+      const box = document.getElementById("healthResults");
+      const row = (icon, title, detail) => `
+        <div style="padding:10px 12px;border-radius:12px;background:#16120f;border:1px solid var(--border);">
+          <div style="font-weight:800;">${icon} ${title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">${detail}</div>
+        </div>`;
+
+      box.innerHTML = row("⏳", "Comprobando...", "Verificando app, servidor Google y calendario...");
+
+      // 1. Versión de la App en el celular
+      let swOk = true;
+      try {
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) await reg.update().catch(() => {});
+        }
+      } catch { swOk = false; }
+      const appHtml = swOk
+        ? row("✅", `App actualizada (${APP_VERSION})`, "Interfaz móvil lista y Service Worker al día.")
+        : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Si notas algo raro, toca 'Forzar recarga limpia'.");
+
+      // 2. Conexión y versión de Google Apps Script (healthCheck)
+      let serverHtml = "";
+      let sheetHtml = "";
+      if (!syncCfg.url) {
+        serverHtml = row("❌", "Falta conectar Google Sheets", "Toca '⚙️ Conectar Sheets' y pega tu URL + PIN.");
+        sheetHtml = row("⚠️", "Calendario sin conexión en vivo", "Mostrando datos locales hasta conectar Sheets.");
+      } else {
+        try {
+          const res = await fetch(syncCfg.url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, action: "healthCheck" })
+          });
+          const hc = await res.json();
+          if (hc && hc.ok && hc.bridgeVersion === "2.0") {
+            serverHtml = row("✅", "Servidor Google conectado y actualizado", `Versión ${hc.bridgeVersion} · Validación de imágenes ${hc.imageValidationEnabled ? "activa" : "inactiva"}.`);
+          } else if (hc && hc.error === "PIN incorrecto") {
+            serverHtml = row("❌", "PIN incorrecto", "Verifica tu PIN en '⚙️ Conectar Sheets'.");
+          } else {
+            serverHtml = row("⚠️", "Falta publicar la \"Nueva versión\" en Google Apps Script", "Pega el código nuevo y crea una Nueva versión en Implementar.");
+          }
+
+          // 3. Lectura de Calendario_LaParrilla
+          const gRes = await fetch(`${syncCfg.url}?pin=${encodeURIComponent(syncCfg.pin)}&token=${encodeURIComponent(syncCfg.pin)}`);
+          const gData = await gRes.json();
+          if (gData && gData.ok && Array.isArray(gData.publicaciones)) {
+            const ap = gData.publicaciones.filter(r => String(r.Estado || "").toUpperCase() === "APROBADO").length;
+            sheetHtml = row("✅", "Calendario_LaParrilla conectado", `${ap} publicación(es) aprobada(s) lista(s) en cola.`);
+          } else {
+            sheetHtml = row("❌", "No se pudo leer la hoja Publicaciones", gData?.error || "Revisa permisos del Web App.");
+          }
+        } catch {
+          serverHtml = row("⚠️", "Falta publicar la \"Nueva versión\" en Google Apps Script", "No se recibió respuesta válida del servidor Google.");
+          sheetHtml = row("❌", "Error de red al leer Calendario_LaParrilla", "Verifica tu conexión a internet o la URL del Web App.");
+        }
+      }
+      box.innerHTML = appHtml + serverHtml + sheetHtml;
+    }
+
+    document.getElementById("healthBtn").addEventListener("click", () => {
+      document.getElementById("healthModal").classList.add("open");
+      runHealthCheck();
+    });
+    document.getElementById("closeHealthBtn").addEventListener("click", () => document.getElementById("healthModal").classList.remove("open"));
+    document.getElementById("recheckHealthBtn").addEventListener("click", runHealthCheck);
+    document.getElementById("forceReloadBtn").addEventListener("click", async () => {
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+      } catch {}
+      location.replace(location.pathname + "?v=" + Date.now());
     });
 
     document.getElementById("closeGalleryBtn").addEventListener("click", () => document.getElementById("galleryModal").classList.remove("open"));
