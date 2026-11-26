@@ -1,4 +1,4 @@
-// v6 cache-busting network-first
+// v7 cache-busting network-first
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => {
   e.waitUntil(

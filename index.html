@@ -573,7 +573,14 @@
         </div>
       </div>
       <label style="font-size:11.5px;color:var(--muted);font-weight:700;">Copy / Texto</label>
-      <textarea id="newPostCopy" placeholder="Escribe el texto de tu publicación (sin precios $)..."></textarea>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:11.5px;color:#fdba74;font-weight:700;">✨ IA:</span>
+        <button type="button" class="dest-shortcut-btn" data-new-ai="antojo">🔥 Antojo</button>
+        <button type="button" class="dest-shortcut-btn" data-new-ai="divertido">😂 Divertido</button>
+        <button type="button" class="dest-shortcut-btn" data-new-ai="familiar">👨‍👩‍👧 Familiar</button>
+      </div>
+      <div id="newPostAiVariants" style="display:none;flex-direction:column;gap:6px;"></div>
+      <textarea id="newPostCopy" placeholder="Escribe una idea breve o el texto de tu publicación (sin precios $)..."></textarea>
       <div style="display:flex;align-items:center;gap:10px;">
         <img id="newPostThumb" src="https://res.cloudinary.com/sgn99usk/image/upload/v1795549730/igeqrqqwrshgngpzfvbg.jpg" alt="Vista previa" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--border);" />
         <button type="button" class="btn" id="newPostPickPhotoBtn" style="flex:1;">🖼️ Elegir o subir foto</button>
@@ -650,7 +657,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const APP_VERSION = "v6";
+    const APP_VERSION = "v7";
     const WA_BASE = "https://wa.me/523330723340?text=";
     const INITIAL_GALLERY = [
       { id: "1", cat: "Burritos", desc: "Burrito de camarón", url: "https://res.cloudinary.com/sgn99usk/image/upload/v1795549726/dwwndaog2uqtspzguc8x.jpg" },
@@ -765,7 +772,9 @@
     let suggestions = loadJson(KEYS.sugs, INITIAL_SUGGESTIONS);
     let gallery = INITIAL_GALLERY.slice();
     let metrics = [];
+    let errorLogs = [];
     let syncCfg = loadJson(KEYS.sync, { url: "", pin: "", preset: "" });
+    const aiVariantsByPost = {};
 
     let currentFilter = "ALL";
     let dayFilter = null;
@@ -980,6 +989,7 @@
           if (mapped.length) gallery = mapped;
         }
         if (Array.isArray(data.metricas)) metrics = data.metricas;
+        if (Array.isArray(data.errores)) errorLogs = data.errores;
         saveLocal();
         render();
         if (!silent) showToast("☁️ Sincronizado con Google Sheets");
@@ -1093,10 +1103,19 @@
           <div class="kpi-card"><small>Alcance / Interacciones</small><strong>${totalReach} / ${totalInt}</strong></div>
         </div>
         <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-          <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de WhatsApp (33 3072 3340)</h3>
-          <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque cómo le aparece el mensaje prellenado a tus clientes desde Facebook o Instagram.</p>
+          <h3 style="margin:0;font-size:15px;">💬 Prueba rápida de WhatsApp y Avisos</h3>
+          <p style="margin:0;font-size:12.5px;color:var(--muted);">Verifica en 1 toque tu enlace de pedidos, grupos de Facebook y alertas por Telegram.</p>
           <a class="btn btn-wa" href="${waTestUrl}" target="_blank" rel="noopener">💬 Abrir enlace de prueba en WhatsApp</a>
           <a class="btn" href="https://www.facebook.com/La-Parrilla-106299351752487" target="_blank" rel="noopener" style="border-color:#1877f2;color:#93c5fd;">🚀 Abrir Página FB para compartir en grupos de Ixtlahuacán</a>
+          <button class="btn" data-action="test-telegram" style="border-color:#38bdf8;color:#7dd3fc;">📲 Probar aviso por Telegram</button>
+        </div>
+        <div class="card" style="padding:14px;">
+          <h3 style="margin:0 0 8px;font-size:15px;">🚨 Registro de errores (Log_Errores)</h3>
+          ${errorLogs.length ? errorLogs.slice(-5).reverse().map(e => `
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+              <strong>${escapeHtml(e.Fecha_Hora)} · ${escapeHtml(e.Origen)} (ID ${escapeHtml(e.ID_Publicacion || "-")})</strong><br>
+              <span style="color:#fca5a5;">${escapeHtml(e.Detalle_Error)}</span>
+            </div>`).join("") : `<p style="margin:0;font-size:12.5px;color:#86efac;">✅ Sin errores registrados en Log_Errores.</p>`}
         </div>
         <div class="card" style="padding:14px;">
           <h3 style="margin:0 0 8px;font-size:15px;">📈 Últimos cortes (Metricas_y_Horarios)</h3>
@@ -1214,6 +1233,18 @@
             <button class="btn" data-action="share-fb-groups" style="border-color:#1877f2;color:#93c5fd;">Compartir en grupos</button>
           </div>` : "";
 
+        const retryErrorHtml = isError ? `
+          <div style="padding:10px 14px;background:rgba(239,68,68,0.12);border-top:1px solid rgba(239,68,68,0.4);display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="font-size:12px;color:#fca5a5;font-weight:700;">⚠️ Publicación incompleta (${post.estado})</span>
+            <button class="btn" data-action="retry-missing" style="border-color:#ef4444;color:#fecaca;">🔄 Reintentar ${post.estado === "ERROR_FB" ? "solo FB" : "solo IG"}</button>
+          </div>` : "";
+
+        const aiVars = aiVariantsByPost[post.id] || [];
+        const aiVarsHtml = aiVars.length ? `
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${aiVars.map((v, idx) => `<button type="button" class="btn" data-apply-ai="${idx}" style="text-align:left;justify-content:flex-start;white-space:normal;font-weight:500;font-size:12px;padding:8px 10px;border-color:rgba(249,115,22,0.45);">✨ Opción ${idx + 1}: ${escapeHtml(v.slice(0, 110))}${v.length > 110 ? "…" : ""}</button>`).join("")}
+          </div>` : "";
+
         return `
           <article class="card ${cardCls}" data-id="${post.id}">
             <div class="card-top">
@@ -1234,6 +1265,7 @@
             </div>
             <div class="preview-stage" id="preview-${post.id}">${renderMockup(post, mode)}</div>
             ${storyKitHtml}
+            ${retryErrorHtml}
             ${shareGroupsHtml}
             <div class="editor-area ${isEditing ? "" : "hidden"}">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -1246,6 +1278,13 @@
                   <input type="time" data-edit-hora="${post.id}" value="${escapeHtml(post.hora)}" />
                 </div>
               </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <span style="font-size:11.5px;color:#fdba74;font-weight:700;">✨ Escribir con IA:</span>
+                <button type="button" class="dest-shortcut-btn" data-ai-tone="antojo">🔥 Antojo</button>
+                <button type="button" class="dest-shortcut-btn" data-ai-tone="divertido">😂 Divertido</button>
+                <button type="button" class="dest-shortcut-btn" data-ai-tone="familiar">👨‍👩‍👧 Familiar</button>
+              </div>
+              ${aiVarsHtml}
               <label style="font-size:12px;color:var(--muted);font-weight:700;">Editar texto en vivo:</label>
               <textarea data-edit-id="${post.id}">${escapeHtml(post.copy)}</textarea>
               ${renderDestSelector("P_" + post.id, getDest("P_" + post.id, post.formato, post.red || "AMBAS"))}
@@ -1339,6 +1378,22 @@
         render();
         return;
       }
+      const testTgBtn = e.target.closest("[data-action='test-telegram']");
+      if (testTgBtn) {
+        if (!syncCfg.url) { showToast("Conecta Google Sheets primero"); return; }
+        showToast("Enviando prueba a Telegram...");
+        try {
+          const r = await fetch(syncCfg.url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, action: "sendTelegramTest" })
+          });
+          const d = await r.json();
+          showToast(d.ok ? "✅ Aviso enviado a tu Telegram" : ("⚠️ " + (d.error || "Falta configurar Telegram")));
+        } catch { showToast("Error de red al probar Telegram"); }
+        return;
+      }
+
       const card = e.target.closest(".card");
       if (!card) return;
 
@@ -1401,11 +1456,63 @@
       const post = posts.find(p => p.id === id);
       if (!post) return;
 
+      const aiToneBtn = e.target.closest("[data-ai-tone]");
+      if (aiToneBtn) {
+        if (!syncCfg.url) { showToast("Conecta Google Sheets para usar IA"); return; }
+        showToast("✨ Generando 3 opciones con Gemini...");
+        try {
+          const r = await fetch(syncCfg.url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              pin: syncCfg.pin, token: syncCfg.pin, action: "generateCopy",
+              tono: aiToneBtn.dataset.aiTone, fecha: post.fecha, formato: post.formato, copy: post.copy
+            })
+          });
+          const d = await r.json();
+          if (d.ok && Array.isArray(d.variantes)) {
+            aiVariantsByPost[id] = d.variantes;
+            render();
+            showToast("✨ 3 opciones listas — toca una para aplicarla");
+          } else {
+            showToast("⚠️ " + (d.error || "Falta GEMINI_API_KEY en Apps Script"));
+          }
+        } catch { showToast("No se pudo conectar con Gemini IA"); }
+        return;
+      }
+      const applyAiBtn = e.target.closest("[data-apply-ai]");
+      if (applyAiBtn) {
+        const idx = Number(applyAiBtn.dataset.applyAi);
+        const chosen = (aiVariantsByPost[id] || [])[idx];
+        if (chosen) {
+          post.copy = chosen;
+          saveLocal();
+          render();
+          showToast(`Opción ${idx + 1} aplicada — guarda para subir a Sheets`);
+        }
+        return;
+      }
+
       const modeBtn = e.target.closest("[data-mode]");
       if (modeBtn) { previewMode[id] = modeBtn.dataset.mode; render(); return; }
       const actionBtn = e.target.closest("[data-action]");
       if (!actionBtn) return;
       const action = actionBtn.dataset.action;
+
+      if (action === "retry-missing") {
+        const missingRed = post.estado === "ERROR_FB" ? "FB" : "IG";
+        const ok = await pushToSheets({ action: "retryNetwork", id, missingRed });
+        if (ok) {
+          post.red = missingRed;
+          post.estado = "APROBADO";
+          saveLocal();
+          render();
+          showToast(`🔄 ID ${id} listo para reintentar solo en ${missingRed}`);
+        } else {
+          showToast("No se pudo marcar reintento en Sheets");
+        }
+        return;
+      }
 
       if (action === "toggle-approve") {
         const nextEstado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
@@ -1568,6 +1675,45 @@
       document.getElementById("newPostDestContainer").innerHTML = renderDestSelector("NEW_POST", getDest("NEW_POST", "POST", "AMBAS"));
       document.getElementById("newPostModal").classList.add("open");
     });
+    document.getElementById("newPostModal").addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-new-ai]");
+      if (!btn) return;
+      if (!syncCfg.url) { showToast("Conecta Google Sheets para usar IA"); return; }
+      const fecha = document.getElementById("newPostFecha").value;
+      const idea = document.getElementById("newPostCopy").value.trim();
+      const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
+      const formato = (groups[0] && groups[0].formato) || "POST";
+      showToast("✨ Generando 3 opciones con Gemini...");
+      try {
+        const r = await fetch(syncCfg.url, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, action: "generateCopy", tono: btn.dataset.newAi, fecha, formato, idea })
+        });
+        const d = await r.json();
+        const box = document.getElementById("newPostAiVariants");
+        if (d.ok && Array.isArray(d.variantes)) {
+          box.style.display = "flex";
+          box.innerHTML = d.variantes.map((v, i) =>
+            `<button type="button" class="btn" data-pick-new-ai="${i}" style="text-align:left;justify-content:flex-start;white-space:normal;font-weight:500;font-size:12px;padding:8px 10px;border-color:rgba(249,115,22,0.45);">✨ Opción ${i + 1}: ${escapeHtml(v.slice(0, 110))}${v.length > 110 ? "…" : ""}</button>`
+          ).join("");
+          box._variants = d.variantes;
+          showToast("✨ Elige una de las 3 opciones");
+        } else {
+          showToast("⚠️ " + (d.error || "Falta GEMINI_API_KEY en Apps Script"));
+        }
+      } catch { showToast("No se pudo conectar con Gemini IA"); }
+    });
+    document.getElementById("newPostAiVariants").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-pick-new-ai]");
+      if (!b) return;
+      const v = (document.getElementById("newPostAiVariants")._variants || [])[Number(b.dataset.pickNewAi)];
+      if (v) {
+        document.getElementById("newPostCopy").value = v;
+        showToast("Opción aplicada");
+      }
+    });
+
     document.getElementById("closeNewPostBtn").addEventListener("click", () => document.getElementById("newPostModal").classList.remove("open"));
     document.getElementById("newPostEstadoBtn").addEventListener("click", (e) => {
       newPostEstado = newPostEstado === "BORRADOR" ? "APROBADO" : "BORRADOR";
@@ -1690,8 +1836,12 @@
             body: JSON.stringify({ pin: syncCfg.pin, token: syncCfg.pin, action: "healthCheck" })
           });
           const hc = await res.json();
-          if (hc && hc.ok && hc.bridgeVersion === "2.0") {
-            serverHtml = row("✅", "Servidor Google conectado y actualizado", `Versión ${hc.bridgeVersion} · Validación de imágenes ${hc.imageValidationEnabled ? "activa" : "inactiva"}.`);
+          if (hc && hc.ok && Number(hc.bridgeVersion) >= 2) {
+            const extras = [
+              `IA Gemini: ${hc.geminiConfigured ? "✅" : "⚠️ falta GEMINI_API_KEY"}`,
+              `Telegram: ${hc.telegramConfigured ? "✅" : "⚠️ opcional"}`
+            ].join(" · ");
+            serverHtml = row("✅", `Servidor Google conectado (v${hc.bridgeVersion})`, `Validación imágenes ${hc.imageValidationEnabled ? "✅" : "❌"} · ${extras}`);
           } else if (hc && hc.error === "PIN incorrecto") {
             serverHtml = row("❌", "PIN incorrecto", "Verifica tu PIN en '⚙️ Conectar Sheets'.");
           } else {
