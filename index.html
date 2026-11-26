@@ -185,6 +185,8 @@
     .status-badge.draft { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
     .status-badge.approved { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.45); }
     .status-badge.published { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.45); }
+    .status-badge.error { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); }
+    .card.error { border-color: rgba(239, 68, 68, 0.6); }
     .guardrail-bar {
       padding: 8px 14px;
       font-size: 12px;
@@ -867,7 +869,46 @@
       if (post.formato === "STORY" && txt.length > 170) {
         issues.push("Tip STORY: mantenlo breve (1 línea) para que no tape la foto.");
       }
+      if (!String(post.foto || "").startsWith("https://")) {
+        issues.push("Falta URL_Media válida (https://) para poder aprobar.");
+      }
+      if (post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL") {
+        issues.push(`Publicación parcial (${post.estado}): falta publicar en ${post.estado === "ERROR_IG" ? "Instagram" : "Facebook"}.`);
+      }
       return issues;
+    }
+
+    async function validateBeforeApprove(post) {
+      if (!String(post.copy || "").trim()) return { ok: false, error: "Falta Copy_Final antes de aprobar" };
+      if (!String(post.fecha || "").trim()) return { ok: false, error: "Falta Fecha antes de aprobar" };
+      if (!String(post.hora || "").trim()) return { ok: false, error: "Falta Hora antes de aprobar" };
+      if (!String(post.red || "AMBAS").trim()) return { ok: false, error: "Falta Red antes de aprobar" };
+      if (!String(post.formato || "").trim()) return { ok: false, error: "Falta Formato antes de aprobar" };
+      const imgUrl = String(post.foto || "").trim();
+      if (!imgUrl.startsWith("https://")) return { ok: false, error: "URL_Media debe iniciar con https://" };
+      try {
+        let res = await fetch(imgUrl, { method: "HEAD" });
+        if (!res.ok) res = await fetch(imgUrl, { method: "GET" });
+        if (!res.ok) return { ok: false, error: `La imagen respondió HTTP ${res.status}` };
+        const ct = (res.headers.get("content-type") || "").toLowerCase();
+        if (ct && !ct.startsWith("image/")) return { ok: false, error: `URL_Media no es imagen (${ct})` };
+        return { ok: true };
+      } catch {
+        return { ok: false, error: "No se pudo verificar que URL_Media sea accesible (HTTP 200)" };
+      }
+    }
+
+    function resolveEffectiveEstado(r) {
+      const est = String(r.Estado || "BORRADOR").toUpperCase();
+      const red = String(r.Red || "AMBAS").toUpperCase();
+      const hasFb = !!String(r.ID_FB || "").trim();
+      const hasIg = !!String(r.ID_IG || "").trim();
+      if (est === "PUBLICADO" && red === "AMBAS") {
+        if (hasFb && !hasIg) return "ERROR_IG";
+        if (!hasFb && hasIg) return "ERROR_FB";
+        if (!hasFb && !hasIg) return "PARCIAL";
+      }
+      return est;
     }
 
     function formatHora(val) {
@@ -900,10 +941,13 @@
                 fecha: fechaClean,
                 dia: getDiaFromFecha(fechaClean),
                 hora: formatHora(r.Hora),
+                red: (r.Red || "AMBAS").toUpperCase(),
                 formato: (r.Formato || "POST").toUpperCase(),
-                estado: (r.Estado || "BORRADOR").toUpperCase(),
+                estado: resolveEffectiveEstado(r),
                 copy: r.Copy_Final || "",
-                foto: r.URL_Media || INITIAL_GALLERY[0].url
+                foto: r.URL_Media || "",
+                id_fb: r.ID_FB || "",
+                id_ig: r.ID_IG || ""
               };
             });
         }
@@ -1131,10 +1175,11 @@
         const mode = previewMode[post.id] || (post.formato === "STORY" ? "STORY" : "IG");
         const isApproved = post.estado === "APROBADO";
         const isPublished = post.estado === "PUBLICADO";
+        const isError = post.estado === "ERROR_IG" || post.estado === "ERROR_FB" || post.estado === "PARCIAL";
         const isEditing = !!editorOpen[post.id];
         const issues = checkGuardrails(post);
-        const badgeCls = isPublished ? "published" : (isApproved ? "approved" : "draft");
-        const cardCls = isPublished ? "published" : (isApproved ? "approved" : "");
+        const badgeCls = isError ? "error" : (isPublished ? "published" : (isApproved ? "approved" : "draft"));
+        const cardCls = isError ? "error" : (isPublished ? "published" : (isApproved ? "approved" : ""));
         const diaLabel = post.dia || getDiaFromFecha(post.fecha);
 
         const storyKitHtml = post.formato === "STORY" ? `
@@ -1305,6 +1350,10 @@
           const groups = groupDestinations(dest);
           if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
           const estado = sugInitialEstado[sid] || "BORRADOR";
+          if (estado === "APROBADO") {
+            const v = await validateBeforeApprove({ copy: sug.copy, fecha: sug.fecha, hora: sug.hora, red: groups[0].red, formato: groups[0].formato, foto: sug.foto });
+            if (!v.ok) { showToast("⛔ " + v.error); return; }
+          }
           const createdIds = [];
           let syncedAll = true;
           for (const grp of groups) {
@@ -1342,7 +1391,12 @@
       const action = actionBtn.dataset.action;
 
       if (action === "toggle-approve") {
-        post.estado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
+        const nextEstado = post.estado === "APROBADO" ? "BORRADOR" : "APROBADO";
+        if (nextEstado === "APROBADO") {
+          const v = await validateBeforeApprove(post);
+          if (!v.ok) { showToast("⛔ " + v.error); return; }
+        }
+        post.estado = nextEstado;
         saveLocal();
         render();
         const synced = await pushToSheets({ action: "updatePost", id, estado: post.estado, copy: post.copy, foto: post.foto });
@@ -1536,6 +1590,10 @@
       if (!fecha || !copy) { showToast("Escribe fecha y copy"); return; }
       const groups = groupDestinations(getDest("NEW_POST", "POST", "AMBAS"));
       if (!groups.length) { showToast("Marca al menos 1 destino"); return; }
+      if (newPostEstado === "APROBADO") {
+        const v = await validateBeforeApprove({ fecha, hora, red: groups[0].red, formato: groups[0].formato, copy, foto: newPostPhoto });
+        if (!v.ok) { showToast("⛔ " + v.error); return; }
+      }
       const dia = getDiaFromFecha(fecha);
       let syncedAll = true;
       const ids = [];
