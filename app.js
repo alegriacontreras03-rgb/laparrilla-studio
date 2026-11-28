@@ -1,6 +1,6 @@
 "use strict";
 
-const APP_VERSION = "v12.2";
+const APP_VERSION = "v12.3";
 const CLOUDINARY_PREFIX = "https://res.cloudinary.com/sgn99usk/";
 const FALLBACK_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/v1795549736/r2hnfddyonxj127l8uop.jpg";
 const AVATAR_LOGO_URL = "https://res.cloudinary.com/sgn99usk/image/upload/w_96,h_96,c_fill,r_max,f_auto,q_auto/v1795549736/r2hnfddyonxj127l8uop.jpg";
@@ -88,21 +88,55 @@ function getNowTimeMx() {
   }
 }
 
-function getNextWeekDatesMx() {
+function getIsoWeekNumber(fechaStr) {
+  const m = String(fechaStr || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return 0;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function getFourWeeksMx() {
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const today = getTodayMx();
   const [y, m, d] = today.split("-").map(Number);
   const base = new Date(y, m - 1, d, 12, 0, 0);
-  const dow = base.getDay();
-  let daysToWed = (3 - dow + 7) % 7;
-  if (daysToWed === 0) daysToWed = 7;
+  const dow = base.getDay(); // 0=Dom, 1=Lun .. 6=Sab
+  const diffToMon = dow === 0 ? -6 : 1 - dow;
+  const thisMonday = new Date(base.getTime() + diffToMon * 86400000);
   const fmt = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-  return {
-    "Mié": fmt(new Date(base.getTime() + daysToWed * 86400000)),
-    "Jue": fmt(new Date(base.getTime() + (daysToWed + 1) * 86400000)),
-    "Vie": fmt(new Date(base.getTime() + (daysToWed + 2) * 86400000)),
-    "Sáb": fmt(new Date(base.getTime() + (daysToWed + 3) * 86400000)),
-    "Dom": fmt(new Date(base.getTime() + (daysToWed + 4) * 86400000))
-  };
+  const weeks = [];
+  for (let i = 0; i < 4; i++) {
+    const mon = new Date(thisMonday.getTime() + i * 7 * 86400000);
+    const wed = new Date(mon.getTime() + 2 * 86400000);
+    const thu = new Date(mon.getTime() + 3 * 86400000);
+    const fri = new Date(mon.getTime() + 4 * 86400000);
+    const sat = new Date(mon.getTime() + 5 * 86400000);
+    const sun = new Date(mon.getTime() + 6 * 86400000);
+    const wedStr = fmt(wed);
+    const sunStr = fmt(sun);
+    const wNum = getIsoWeekNumber(wedStr);
+    const mWed = months[wed.getMonth()];
+    const mSun = months[sun.getMonth()];
+    const rangeLabel = mWed === mSun
+      ? `${wed.getDate()}–${sun.getDate()} ${mSun}`
+      : `${wed.getDate()} ${mWed}–${sun.getDate()} ${mSun}`;
+    weeks.push({
+      idx: i,
+      weekNum: wNum,
+      rangeLabel,
+      mon: fmt(mon),
+      sun: sunStr,
+      dates: { "Mié": wedStr, "Jue": fmt(thu), "Vie": fmt(fri), "Sáb": fmt(sat), "Dom": sunStr }
+    });
+  }
+  return weeks;
+}
+
+function getNextWeekDatesMx() {
+  return getFourWeeksMx()[1].dates;
 }
 
 function getDiaFromFecha(fechaStr) {
@@ -283,7 +317,9 @@ let featureFlags = { insightsSyncEnabled: false, autoCommentsEnabled: false };
 
 let currentView = "CALENDAR";     // CALENDAR | SUGGESTIONS | PULSE
 let currentFilter = "PENDING";    // PENDING | APROBADO | PUBLICADO | ALL | ERRORS | NEW_OTHER
-let dayFilter = null;
+let selectedWeekIdx = 0;          // 0..3 (próximas 4 semanas) | -1 (todo el mes)
+let dayFilter = null;             // "YYYY-MM-DD" exacto
+let newPostWeekIdx = 1;           // Semana seleccionada en modal + Nueva
 let sugDayFilter = "Todos";
 let compactMode = true;           // Vista compacta predeterminada (~108 px por fila)
 const expandedCards = {};         // id -> true si expandida en vista compacta
@@ -843,27 +879,44 @@ function renderMockup(post, mode, key, isFullscreen = false) {
     </div>`;
 }
 
-// ===== TIRA SEMANAL CON FECHA + PUNTOS =====
+// ===== SELECTOR DE 4 SEMANAS + TIRA SEMANAL CON FECHA REAL =====
 function renderWeekStripHtml(activePosts) {
+  const weeks = getFourWeeksMx();
+  const activeWeek = selectedWeekIdx >= 0 ? (weeks[selectedWeekIdx] || weeks[0]) : weeks[0];
   const days = ["Mié", "Jue", "Vie", "Sáb", "Dom"];
-  const nw = getNextWeekDatesMx();
-  return `
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+  const monthBarHtml = `
+    <div class="month-bar" id="monthBar">
+      ${weeks.map(w => {
+        const wCount = activePosts.filter(p => p.fecha >= w.mon && p.fecha <= w.sun).length;
+        return `<button type="button" class="week-chip ${selectedWeekIdx === w.idx ? "active" : ""}" data-week-idx="${w.idx}">
+          <strong>S${w.weekNum}</strong> · ${escapeHtml(w.rangeLabel)}${wCount ? ` (${wCount})` : ""}
+        </button>`;
+      }).join("")}
+      <button type="button" class="week-chip ${selectedWeekIdx === -1 ? "active" : ""}" data-week-idx="-1">📅 Todo el mes</button>
+    </div>`;
+
+  const stripHtml = selectedWeekIdx === -1 ? "" : `
     <div class="week-strip" id="weekStrip">
       ${days.map(d => {
-        const dayPosts = activePosts.filter(p => (p.dia || getDiaFromFecha(p.fecha)) === d);
-        const sampleFecha = (dayPosts[0] && dayPosts[0].fecha) || nw[d] || "";
-        const dayNum = sampleFecha.match(/-(\d{2})$/) ? Number(sampleFecha.slice(-2)) : "";
+        const dt = activeWeek.dates[d];
+        const dayPosts = activePosts.filter(p => p.fecha === dt);
+        const dayNum = Number(dt.slice(-2));
+        const monTxt = months[Number(dt.slice(5, 7)) - 1] || "";
         const dots = dayPosts.map(p => {
           const cls = isErrorEstado(p.estado) ? "error" : (p.estado === "PUBLICADO" ? "published" : (p.estado === "APROBADO" ? "approved" : "draft"));
           return `<span class="dot ${cls}" title="${escapeHtml(p.estado)}"></span>`;
         }).join("");
         return `
-          <button type="button" class="day-pill ${dayFilter === d ? "active" : ""}" data-day="${escapeHtml(d)}">
-            <span>${escapeHtml(d)}${dayNum ? " " + dayNum : ""}</span>
+          <button type="button" class="day-pill ${dayFilter === dt ? "active" : ""}" data-day="${escapeHtml(dt)}">
+            <span>${escapeHtml(d)} ${dayNum} ${monTxt}</span>
             <div class="day-dots">${dots}</div>
           </button>`;
       }).join("")}
     </div>`;
+
+  return monthBarHtml + stripHtml;
 }
 
 // ===== PULSO (P2: ERRORES Y ALCANCE SEPARADOS + BARRA SEMANAL) =====
@@ -1018,6 +1071,8 @@ function render() {
       <button type="button" class="sum-chip" id="toggleCompactBtn">${compactMode ? "🗂️ Tarjetas" : "☰ Lista"}</button>
     </div>`;
 
+  const weeks = getFourWeeksMx();
+  const activeWeek = selectedWeekIdx >= 0 ? (weeks[selectedWeekIdx] || weeks[0]) : null;
   const visible = activePosts.filter(p => {
     const matchTab = currentFilter === "ALL"
       ? true
@@ -1028,17 +1083,22 @@ function render() {
           : currentFilter === "NEW_OTHER"
             ? isUnseenFromOther(p)
             : p.estado === currentFilter;
-    const matchDay = !dayFilter || (p.dia || getDiaFromFecha(p.fecha)) === dayFilter;
-    return matchTab && matchDay;
+    const matchWeek = !activeWeek || (p.fecha >= activeWeek.mon && p.fecha <= activeWeek.sun);
+    const matchDay = !dayFilter || p.fecha === dayFilter;
+    return matchTab && matchWeek && matchDay;
   });
 
   if (!visible.length) {
     const isOfflineEmpty = syncCfg.url && !sessionSynced && lastSyncOk === false;
+    const dayLabel = dayFilter ? formatReadableDate(dayFilter, "18:00").split(" · ")[0] : "";
+    const scopeLabel = dayLabel
+      ? ` para ${escapeHtml(dayLabel)}`
+      : (activeWeek ? ` en S${activeWeek.weekNum} (${escapeHtml(activeWeek.rangeLabel)})` : "");
     const msg = isOfflineEmpty
       ? "No se pudo conectar a Google Sheets. Revisa tu señal y toca 🔄."
       : (currentFilter === "PENDING"
-        ? "¡Todo al día! No tienes borradores ni errores pendientes 🎉"
-        : `No hay publicaciones en este filtro${dayFilter ? " para " + escapeHtml(dayFilter) : ""}.`);
+        ? `¡Todo al día${scopeLabel}! No tienes borradores ni errores pendientes 🎉`
+        : `No hay publicaciones en este filtro${scopeLabel}.`);
     feed.innerHTML = renderWeekStripHtml(activePosts) + summaryHtml + `
       <div class="empty-state">
         <div class="empty-state-icon">${isOfflineEmpty ? "📴" : "🔥"}</div>
@@ -1081,6 +1141,7 @@ function renderCompactRow(post) {
       <div class="compact-body">
         <div class="compact-meta">
           <span class="compact-date">${escapeHtml(formatReadableDate(post.fecha, post.hora))}</span>
+          <span class="format-chip">S${getIsoWeekNumber(post.fecha)}</span>
           ${rel ? `<span class="rel-time">${escapeHtml(rel)}</span>` : ""}
         </div>
         <div class="compact-sub">
@@ -1161,6 +1222,7 @@ function renderFullCard(post) {
       <div class="card-top">
         <div class="meta-left">
           <span class="id-chip">ID ${escapeHtml(post.id)}</span>
+          <span class="format-chip">S${getIsoWeekNumber(post.fecha)}</span>
           <span class="date-label">${escapeHtml(formatReadableDate(post.fecha, post.hora))}</span>
           ${rel ? `<span class="rel-time">${escapeHtml(rel)}</span>` : ""}
           <span class="format-chip">${escapeHtml(post.red)} · ${escapeHtml(post.formato)}</span>
@@ -1479,7 +1541,14 @@ document.getElementById("feed").addEventListener("input", (e) => {
 });
 
 document.getElementById("feed").addEventListener("click", async (e) => {
-  // Tira semanal
+  // Selector de 4 semanas + tira semanal
+  const weekChipBtn = e.target.closest("[data-week-idx]");
+  if (weekChipBtn) {
+    selectedWeekIdx = Number(weekChipBtn.dataset.weekIdx);
+    dayFilter = null;
+    render();
+    return;
+  }
   const dayBtn = e.target.closest("[data-day]");
   if (dayBtn) {
     dayFilter = dayFilter === dayBtn.dataset.day ? null : dayBtn.dataset.day;
@@ -2144,18 +2213,42 @@ function refreshNewPostLive() {
 }
 
 function renderNewPostDayChips(selectedDate) {
-  const nw = getNextWeekDatesMx();
+  const weeks = getFourWeeksMx();
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  if (selectedDate) {
+    const found = weeks.findIndex(w => selectedDate >= w.mon && selectedDate <= w.sun);
+    if (found >= 0) newPostWeekIdx = found;
+  }
+  const w = weeks[newPostWeekIdx] || weeks[0];
+  document.getElementById("newPostWeekChips").innerHTML = weeks.map(wk =>
+    `<button type="button" class="quick-chip ${wk.idx === w.idx ? "active" : ""}" data-new-week="${wk.idx}">S${wk.weekNum} · ${escapeHtml(wk.rangeLabel)}</button>`
+  ).join("");
   const days = ["Mié", "Jue", "Vie", "Sáb", "Dom"];
   document.getElementById("newPostDayChips").innerHTML = days.map(d => {
-    const dt = nw[d];
+    const dt = w.dates[d];
     const num = Number(dt.slice(-2));
-    return `<button type="button" class="quick-chip ${selectedDate === dt ? "active" : ""}" data-quick-date="${dt}">${d} ${num}</button>`;
+    const mon = months[Number(dt.slice(5, 7)) - 1] || "";
+    return `<button type="button" class="quick-chip ${selectedDate === dt ? "active" : ""}" data-quick-date="${dt}">${d} ${num} ${mon}</button>`;
   }).join("");
 }
 
+document.getElementById("newPostWeekChips").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-new-week]");
+  if (!btn) return;
+  newPostWeekIdx = Number(btn.dataset.newWeek);
+  const wk = getFourWeeksMx()[newPostWeekIdx];
+  const curDay = getDiaFromFecha(document.getElementById("newPostFecha").value);
+  const nextFecha = (wk && wk.dates[curDay]) ? wk.dates[curDay] : (wk ? wk.dates["Mié"] : getTodayMx());
+  document.getElementById("newPostFecha").value = nextFecha;
+  renderNewPostDayChips(nextFecha);
+  refreshNewPostLive();
+});
+
 document.getElementById("newPostBtn").addEventListener("click", () => {
-  const nw = getNextWeekDatesMx();
-  const defaultFecha = getTodayMx();
+  const weeks = getFourWeeksMx();
+  newPostWeekIdx = selectedWeekIdx >= 0 ? selectedWeekIdx : 1;
+  const activeWk = weeks[newPostWeekIdx] || weeks[0];
+  const defaultFecha = dayFilter || (selectedWeekIdx === 0 ? getTodayMx() : activeWk.dates["Mié"]);
   document.getElementById("newPostFecha").value = defaultFecha;
   document.getElementById("newPostHora").value = "18:00";
   document.getElementById("newPostCopy").value = "";
@@ -2575,7 +2668,7 @@ async function runHealthCheck() {
       <div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px;">${escapeHtml(detail)}</div>
     </div>`;
 
-  box.innerHTML = row("⏳", "Comprobando v12.2…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
+  box.innerHTML = row("⏳", "Comprobando v12.3…", "Verificando app.js, CSP estricta, Service Worker, alertas, banderas y Google Apps Script…");
 
   let swOk = true;
   try {
@@ -2586,7 +2679,7 @@ async function runHealthCheck() {
   } catch { swOk = false; }
 
   const appHtml = swOk
-    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.2.")
+    ? row("✅", `App ${APP_VERSION} · Celular: ${syncCfg.editor || "Ale"}`, "JS externo (app.js), CSP sin unsafe-inline y caché offline v12.3.")
     : row("⚠️", `App ${APP_VERSION} (revisa caché)`, "Toca 'Recarga limpia' si notas algo desactualizado.");
 
   let serverHtml = "";

@@ -236,14 +236,43 @@
       gap: var(--sp-2);
     }
 
-    /* Tira semanal compacta (40px) con fecha + puntos */
+    /* Selector de 4 semanas (planificación mensual limpia sin saturar arriba) */
+    .month-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .month-bar::-webkit-scrollbar { display: none; }
+    .week-chip {
+      height: 34px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .week-chip strong { color: #fdba74; font-weight: 800; }
+    .week-chip.active { background: #291e16; border-color: var(--accent); color: #fff; }
+    .week-chip.active strong { color: #fff; }
+
+    /* Tira semanal compacta (44px) con día real + fecha + puntos */
     .week-strip {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: var(--sp-1);
     }
     .day-pill {
-      height: 40px;
+      height: 44px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -1347,7 +1376,8 @@
         </div>
 
         <div>
-          <span class="label-xs">Día rápido (próxima semana)</span>
+          <span class="label-xs">Semana y día real (próximas 4 semanas)</span>
+          <div class="chip-row" id="newPostWeekChips" style="margin-bottom:6px;"></div>
           <div class="chip-row" id="newPostDayChips"></div>
         </div>
         <div>
@@ -1523,7 +1553,7 @@
           <span class="label-xs">Upload Preset de Cloudinary (para subir desde cámara)</span>
           <input type="text" id="cldPresetInput" placeholder="ej. laparrilla_unsigned" />
         </div>
-        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v12.2)</button>
+        <button class="btn" id="openHealthFromSyncBtn" type="button" style="border-color:rgba(249,115,22,0.5);color:#fdba74;">🩺 Diagnóstico del sistema (v12.3)</button>
       </div>
       <div class="modal-footer">
         <button class="btn btn-decline" id="disconnectSyncBtn" type="button" style="flex:0 0 auto;">Desconectar</button>
@@ -1532,12 +1562,12 @@
     </div>
   </div>
 
-  <!-- Modal: 🩺 Diagnóstico del Sistema (v12.2) -->
+  <!-- Modal: 🩺 Diagnóstico del Sistema (v12.3) -->
   <div class="modal-backdrop" id="healthModal">
     <div class="modal-sheet">
       <div class="modal-drag"></div>
       <div class="modal-head">
-        <h2>🩺 Diagnóstico (v12.2)</h2>
+        <h2>🩺 Diagnóstico (v12.3)</h2>
         <button class="btn" id="closeHealthBtn" type="button">✖</button>
       </div>
       <div class="modal-body">

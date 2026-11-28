@@ -1,5 +1,5 @@
-const SHELL_CACHE = "lp-studio-shell-v12.2";
-const IMG_CACHE = "lp-studio-img-v12.2";
+const SHELL_CACHE = "lp-studio-shell-v12.3";
+const IMG_CACHE = "lp-studio-img-v12.3";
 const SHELL_FILES = ["./", "./index.html", "./app.js", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
